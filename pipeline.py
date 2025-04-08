@@ -1,6 +1,6 @@
 from LLM.utils import setup_genai, ai_response
 from STT.model import SpeechRecognizer
-from TTS.model import TTS_Engine
+from TTS_module.model import TTS_Engine
 from IPython.display import Audio, display
 
 def speech_ai_pipeline(audio_path, api_key, reference_voice=None, language="en"):
