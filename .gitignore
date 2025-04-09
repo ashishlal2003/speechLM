@@ -2,3 +2,5 @@ venv/
 __pycache__/
 .env
 myenv/
+reference_audio.wav
+ai_response.wav
