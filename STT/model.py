@@ -1,12 +1,30 @@
+import os
 import torch
 import torchaudio
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
+from pydub import AudioSegment
 from config import DEVICE
 
 print(f"Using device: {DEVICE}")
 
+def convert_to_wav(file_path, output_dir="/tmp/converted_audio"):
+    os.makedirs(output_dir, exist_ok=True)
+    file_ext = os.path.splitext(file_path)[1].lower()
+
+    if file_ext == ".wav":
+        return file_path 
+
+    try:
+        audio = AudioSegment.from_file(file_path)
+    except Exception as e:
+        raise ValueError(f"Could not read audio file: {file_path}. Error: {e}")
+
+    output_path = os.path.join(output_dir, os.path.basename(file_path) + ".wav")
+    audio.export(output_path, format="wav")
+    return output_path
+
 class SpeechRecognizer:
-    def __init__(self, model_name="openai/whisper-small"):
+    def __init__(self, model_name="openai/whisper-tiny"):
         print(f"Loading Whisper model: {model_name}...")
         self.processor = WhisperProcessor.from_pretrained(model_name)
         self.model = WhisperForConditionalGeneration.from_pretrained(model_name).to(DEVICE)
@@ -28,6 +46,7 @@ class SpeechRecognizer:
         return waveform.squeeze(0).numpy()
 
     def transcribe(self, audio_path, language='english'):
+        audio_path = convert_to_wav(audio_path)
         audio_input = self.load_audio(audio_path)
 
         inputs = self.processor(
