@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
-sample_audio = "Recording.wav"  
+sample_audio = "Recording.m4a"  
 
 if os.path.exists(sample_audio):
     result = speech_ai_pipeline(

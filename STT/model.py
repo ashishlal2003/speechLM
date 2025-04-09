@@ -24,7 +24,7 @@ def convert_to_wav(file_path, output_dir="/tmp/converted_audio"):
     return output_path
 
 class SpeechRecognizer:
-    def __init__(self, model_name="openai/whisper-tiny"):
+    def __init__(self, model_name="openai/whisper-small"):
         print(f"Loading Whisper model: {model_name}...")
         self.processor = WhisperProcessor.from_pretrained(model_name)
         self.model = WhisperForConditionalGeneration.from_pretrained(model_name).to(DEVICE)
