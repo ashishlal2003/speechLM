@@ -19,7 +19,7 @@ def speech_ai_pipeline(audio_path, api_key, reference_voice=None, language="en")
         print("Setting up models...")
         llm_model = setup_genai(api_key)
         recognizer = SpeechRecognizer.get_instance()
-        tts_engine = TTS_Engine()
+        tts_engine = TTS_Engine.get_instance()
 
         # Transcribe input audio
         print("\nTranscribing audio...")
