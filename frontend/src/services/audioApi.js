@@ -16,6 +16,8 @@ export const uploadAudioToServer = async (audioBlob) => {
       throw new Error('Failed to upload audio');
     }
     
-    return await response.json();
+    const data = await response.json();
+    // console.log("response",data)
+    return data;
   };
   

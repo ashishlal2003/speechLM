@@ -5,6 +5,7 @@ from config import AUDIO_FOLDER
 from fastapi import FastAPI, UploadFile, File, HTTPException
 import shutil
 import uuid 
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
@@ -14,6 +15,14 @@ if not os.path.exists(AUDIO_FOLDER):
 API_KEY = os.getenv("API_KEY")
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins (for development - be specific in production)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 @app.get("/")
 def home():
@@ -45,6 +54,11 @@ async def process_audio(audio_file: UploadFile = File(...)):
             language="en"
         )
         
+        print(  "input_audio", file_path,
+            "transcription", result.get('transcription'),
+            "ai_response", result.get('ai_response'),
+            "output_audio", result.get('tts_output'))
+
         return {
             "input_audio": file_path,
             "transcription": result.get('transcription'),

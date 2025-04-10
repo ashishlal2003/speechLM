@@ -5,9 +5,12 @@ import AudioPlayer from './AudioPlayer';
 import useAudioRecorder from '../../hooks/useAudioRecorder';
 import { uploadAudioToServer } from '../../services/audioApi';
 import { motion } from 'framer-motion';
+import audio_url from "../../../../backend/local_uploads/ai_response.wav"
 
 export default function VoiceRecorderApp() {
   const [uploadStatus, setUploadStatus] = useState(null);
+  const [output, setOutput] = useState("/backend/local_uploads/ai_response.wav")
+
   const {
     isRecording,
     audioURL,
@@ -26,18 +29,19 @@ export default function VoiceRecorderApp() {
 
   const sendRecording = async () => {
     if (!audioURL) return;
-    
+
     setIsLoading(true);
     setError(null);
     setUploadStatus("uploading");
-    
+
     try {
       const audioBlob = await getAudioBlob();
-      await uploadAudioToServer(audioBlob);
+      const data = await uploadAudioToServer(audioBlob);
+      setOutput(data)
       setUploadStatus("success");
       setTimeout(() => setUploadStatus(null), 3000);
     } catch (err) {
-      setError("Failed to send audio. Please try again.",err);
+      setError("Failed to send audio. Please try again.", err);
       setUploadStatus("error");
     } finally {
       setIsLoading(false);
@@ -46,38 +50,46 @@ export default function VoiceRecorderApp() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden"
       >
         <div className="p-6">
           <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">Voice Recorder</h1>
-          
-          <StatusDisplay 
+
+          <StatusDisplay
             permissionGranted={permissionGranted}
             isRecording={isRecording}
             recordingTime={recordingTime}
             error={error}
             uploadStatus={uploadStatus}
           />
-          
-          <RecordButton 
+
+          <RecordButton
             isRecording={isRecording}
             isLoading={isLoading}
             onStartRecording={startRecording}
             onStopRecording={stopRecording}
           />
-          
           {audioURL && (
-            <AudioPlayer 
+            <AudioPlayer
               audioURL={audioURL}
               onDelete={deleteRecording}
               onSend={sendRecording}
               isLoading={isLoading}
             />
           )}
-          
+
+          {output && output.output_audio && (
+            <audio
+              controls
+              src={audio_url}
+              className="w-full h-12 mb-4"
+            />
+
+          )}
+
           {/* Permission request button */}
           {permissionGranted === false && (
             <motion.button
@@ -90,7 +102,7 @@ export default function VoiceRecorderApp() {
             </motion.button>
           )}
         </div>
-        
+
         <div className="bg-gray-50 px-6 py-4 text-sm text-center text-gray-500">
           Your voice recordings are securely processed and not stored permanently.
         </div>

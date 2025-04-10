@@ -11,3 +11,4 @@ pydub
 fastapi
 uvicorn
 python-multipart
+starlette 
