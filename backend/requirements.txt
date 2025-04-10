@@ -8,3 +8,4 @@ google-generativeai
 ipython
 dotenv
 pydub
+fastapi
