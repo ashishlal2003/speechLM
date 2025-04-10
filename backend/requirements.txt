@@ -9,3 +9,5 @@ ipython
 dotenv
 pydub
 fastapi
+uvicorn
+python-multipart

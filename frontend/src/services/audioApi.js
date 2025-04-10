@@ -4,10 +4,10 @@ export const uploadAudioToServer = async (audioBlob) => {
     }
     
     const formData = new FormData();
-    formData.append('audio', audioBlob, 'recording.wav');
+    formData.append('audio_file', audioBlob, 'recording.wav');
     
     // Replace with your actual API endpoint
-    const response = await fetch('https://your-api-endpoint.com/upload-audio', {
+    const response = await fetch('http://127.0.0.1:9000/process', {
       method: 'POST',
       body: formData,
     });

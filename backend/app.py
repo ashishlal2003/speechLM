@@ -3,7 +3,6 @@ from pipeline import speech_ai_pipeline
 from dotenv import load_dotenv
 from config import AUDIO_FOLDER
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
 import shutil
 import uuid 
 
