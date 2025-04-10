@@ -4,7 +4,7 @@ from services.TTS_module.model import TTS_Engine
 from IPython.display import Audio, display
 from config import AUDIO_FOLDER
 
-def speech_ai_pipeline(audio_path, reference_voice=None, language="en"):
+def speech_ai_pipeline(audio_path, api_key, reference_voice=None, language="en"):
     """
     Complete pipeline for speech recognition, AI response, and speech synthesis
     
@@ -17,7 +17,7 @@ def speech_ai_pipeline(audio_path, reference_voice=None, language="en"):
     try:
         # Initialize components
         print("Setting up models...")
-        llm_model = setup_genai()
+        llm_model = setup_genai(api_key)
         recognizer = SpeechRecognizer.get_instance()
         tts_engine = TTS_Engine()
 
