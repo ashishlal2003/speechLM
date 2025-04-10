@@ -1,5 +1,5 @@
 import os
-from pipeline import speech_ai_pipeline
+from services.Pipeline.pipeline import speech_ai_pipeline
 from dotenv import load_dotenv
 from config import AUDIO_FOLDER
 from fastapi import FastAPI, UploadFile, File, HTTPException
