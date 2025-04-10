@@ -1,6 +1,6 @@
-from LLM.utils import setup_genai, ai_response
-from STT.model import SpeechRecognizer
-from TTS_module.model import TTS_Engine
+from services.LLM.utils import setup_genai, ai_response
+from services.STT.model import SpeechRecognizer
+from services.TTS_module.model import TTS_Engine
 from IPython.display import Audio, display
 from config import AUDIO_FOLDER
 
