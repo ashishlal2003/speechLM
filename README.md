@@ -1,6 +1,6 @@
-GPU based torch:
+Required: python3.11
 
-conda install pytorch==2.5.1 torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
-
-rest (within conda env):
-pip install -r requirements.txt
+backend: 
+sudo apt install ffmpeg
+install req.txt in venv
+place audio files in backend/local_audio -> might need to create the folder

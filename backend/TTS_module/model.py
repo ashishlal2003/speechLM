@@ -1,6 +1,6 @@
 from TTS.api import TTS
 import os
-from config import DEVICE
+from config import DEVICE, AUDIO_FOLDER
 
 class TTS_Engine:
     def __init__(self):
@@ -15,7 +15,7 @@ class TTS_Engine:
             print(f"✅ TTS Model loaded successfully on {DEVICE}")
             
             # Download a sample reference (only used if voice cloning is requested)
-            if not os.path.exists("reference_audio.wav"):
+            if not os.path.exists(f"{AUDIO_FOLDER}/reference_audio.wav"):
                 print("Downloading sample reference voice (only used if needed)...")
                 os.system("curl -O https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav")
                 os.rename("LJ001-0001.wav", "reference_audio.wav")
@@ -25,7 +25,7 @@ class TTS_Engine:
             print(f"Error loading TTS model: {e}")
             raise
 
-    def generate_speech(self, text, output_file="output.wav", language="en", reference_audio=None):
+    def generate_speech(self, text, output_file, language="en", reference_audio=None):
         """
         Generate speech using XTTS v2
         

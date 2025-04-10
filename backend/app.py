@@ -1,11 +1,15 @@
 import os
 from pipeline import speech_ai_pipeline
 from dotenv import load_dotenv
+from config import AUDIO_FOLDER
 
 load_dotenv()
 
+if not os.path.exists(AUDIO_FOLDER):
+    os.makedirs(AUDIO_FOLDER)
+
 API_KEY = os.getenv("API_KEY")
-sample_audio = "Recording.m4a"  
+sample_audio = f"{AUDIO_FOLDER}/Recording.m4a"  
 
 if os.path.exists(sample_audio):
     result = speech_ai_pipeline(

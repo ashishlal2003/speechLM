@@ -4,3 +4,4 @@ __pycache__/
 myenv/
 reference_audio.wav
 ai_response.wav
+local_uploads/

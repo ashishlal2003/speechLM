@@ -2,6 +2,7 @@ from LLM.utils import setup_genai, ai_response
 from STT.model import SpeechRecognizer
 from TTS_module.model import TTS_Engine
 from IPython.display import Audio, display
+from config import AUDIO_FOLDER
 
 def speech_ai_pipeline(audio_path, api_key, reference_voice=None, language="en"):
     """
@@ -32,7 +33,7 @@ def speech_ai_pipeline(audio_path, api_key, reference_voice=None, language="en")
         print("\nGenerating speech from response...")
         tts_output = tts_engine.generate_speech(
             text=ai_text_response,
-            output_file="ai_response.wav",
+            output_file=f"{AUDIO_FOLDER}/ai_response.wav",
             language=language,
             reference_audio=reference_voice  # This can be None, it's perfectly fine!
         )
