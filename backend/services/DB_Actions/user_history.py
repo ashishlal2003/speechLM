@@ -2,7 +2,9 @@
 from pymongo import MongoClient
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 class UserHistory:
     def __init__(self, db_url=os.getenv("MONGO_URI"), db_name="chat_db", collection_name="history"):
         self.client = MongoClient(db_url)

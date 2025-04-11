@@ -38,11 +38,6 @@ def speech_ai_pipeline(audio_path, api_key, reference_voice=None, language="en")
             reference_audio=reference_voice  # This can be None, it's perfectly fine!
         )
 
-        # Play the generated audio
-        if tts_output:
-            print("Playing generated audio...")
-            display(Audio(tts_output, autoplay=True))
-
         return {
             "transcription": transcription,
             "ai_response": ai_text_response,
