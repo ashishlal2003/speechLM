@@ -5,11 +5,10 @@ import AudioPlayer from './AudioPlayer';
 import useAudioRecorder from '../../hooks/useAudioRecorder';
 import { uploadAudioToServer } from '../../services/audioApi';
 import { motion } from 'framer-motion';
-import audio_url from "../../../../backend/local_uploads/ai_response.wav"
 
 export default function VoiceRecorderApp() {
   const [uploadStatus, setUploadStatus] = useState(null);
-  const [output, setOutput] = useState("/backend/local_uploads/ai_response.wav")
+  const [output, setOutput] = useState("")
 
   const {
     isRecording,
@@ -36,17 +35,31 @@ export default function VoiceRecorderApp() {
 
     try {
       const audioBlob = await getAudioBlob();
-      const data = await uploadAudioToServer(audioBlob);
-      setOutput(data)
+      const response = await uploadAudioToServer(audioBlob); // this already returns JSON
+
+      const { output_audio_base64, output_mime, transcription, ai_response } = response;
+
+      // Convert base64 to Blob
+      const byteCharacters = atob(output_audio_base64);
+      const byteNumbers = new Array(byteCharacters.length).fill().map((_, i) => byteCharacters.charCodeAt(i));
+      const byteArray = new Uint8Array(byteNumbers);
+      const audioBlobFromServer = new Blob([byteArray], { type: output_mime });
+
+      // Create object URL
+      const objectURL = URL.createObjectURL(audioBlobFromServer);
+      setOutput(objectURL); // update state with playable blob URL
+
       setUploadStatus("success");
       setTimeout(() => setUploadStatus(null), 3000);
     } catch (err) {
-      setError("Failed to send audio. Please try again.", err);
+      console.error(err);
+      setError("Failed to send audio. Please try again.");
       setUploadStatus("error");
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -81,14 +94,14 @@ export default function VoiceRecorderApp() {
             />
           )}
 
-          {output && output.output_audio && (
+          {output && (
             <audio
               controls
-              src={audio_url}
+              src={output}
               className="w-full h-12 mb-4"
             />
-
           )}
+
 
           {/* Permission request button */}
           {permissionGranted === false && (
