@@ -1,14 +1,14 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import StatusDisplay from './StatusDisplay';
 import RecordButton from './RecordButton';
 import AudioPlayer from './AudioPlayer';
 import useAudioRecorder from '../../hooks/useAudioRecorder';
-import { uploadAudioToServer } from '../../services/audioApi';
-import { motion } from 'framer-motion';
+import useWebSocketTTS from '../../services/useWebSocketTTS';
 
 export default function VoiceRecorderApp() {
   const [uploadStatus, setUploadStatus] = useState(null);
-  const [output, setOutput] = useState("")
+  const [output, setOutput] = useState("");
 
   const {
     isRecording,
@@ -26,29 +26,17 @@ export default function VoiceRecorderApp() {
     getAudioBlob
   } = useAudioRecorder();
 
+  const { sendAudioBlob, status } = useWebSocketTTS();
+
   const sendRecording = async () => {
     if (!audioURL) return;
-
     setIsLoading(true);
     setError(null);
-    setUploadStatus("uploading");
+    setUploadStatus("sending");
 
     try {
       const audioBlob = await getAudioBlob();
-      const response = await uploadAudioToServer(audioBlob); // this already returns JSON
-
-      const { output_audio_base64, output_mime, transcription, ai_response } = response;
-
-      // Convert base64 to Blob
-      const byteCharacters = atob(output_audio_base64);
-      const byteNumbers = new Array(byteCharacters.length).fill().map((_, i) => byteCharacters.charCodeAt(i));
-      const byteArray = new Uint8Array(byteNumbers);
-      const audioBlobFromServer = new Blob([byteArray], { type: output_mime });
-
-      // Create object URL
-      const objectURL = URL.createObjectURL(audioBlobFromServer);
-      setOutput(objectURL); // update state with playable blob URL
-
+      sendAudioBlob(audioBlob); // This streams and plays live
       setUploadStatus("success");
       setTimeout(() => setUploadStatus(null), 3000);
     } catch (err) {
@@ -59,7 +47,6 @@ export default function VoiceRecorderApp() {
       setIsLoading(false);
     }
   };
-
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -85,6 +72,7 @@ export default function VoiceRecorderApp() {
             onStartRecording={startRecording}
             onStopRecording={stopRecording}
           />
+
           {audioURL && (
             <AudioPlayer
               audioURL={audioURL}
@@ -94,16 +82,13 @@ export default function VoiceRecorderApp() {
             />
           )}
 
-          {output && (
-            <audio
-              controls
-              src={output}
-              className="w-full h-12 mb-4"
-            />
+          {/* WebSocket stream status */}
+          {status && (
+            <div className="text-sm text-center text-gray-500 mt-4">
+              WebSocket: {status}
+            </div>
           )}
 
-
-          {/* Permission request button */}
           {permissionGranted === false && (
             <motion.button
               whileHover={{ scale: 1.05 }}

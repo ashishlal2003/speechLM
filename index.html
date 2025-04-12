@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Text-to-Speech</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .speaking {
+            background-color: #f8f9fa;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .ready {
+            background-color: #f8f9fa;
+            border-left: 4px solid #2196F3;
+        }
+
+        .error {
+            background-color: #f8f9fa;
+            border-left: 4px solid #f44336;
+        }
+
+        .transcript {
+            background-color: #f8f9fa;
+            border-left: 4px solid #673AB7;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        #recordButton {
+            background-color: #E91E63;
+        }
+
+        #recordButton:hover {
+            background-color: #C2185B;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Real-Time Text-to-Speech</h1>
+    <p>Enter text below and click "Speak" to hear it in real-time.</p>
+
+    <textarea id="textInput"
+        placeholder="Enter text here...">Hello! This is a test of real-time text-to-speech using RealtimeTTS with CoquiEngine.</textarea>
+    <div>
+        <button id="speakButton">Speak</button>
+    </div>
+
+    <div id="status" class="ready">Ready</div>
+    <div class="section">
+        <h2>Speech-to-Text</h2>
+        <p>Click "Record" to speak and have your voice transcribed.</p>
+
+        <button id="recordButton">Start Recording</button>
+        <div id="sttStatus" class="status ready">Ready</div>
+        <div id="transcriptOutput" class="transcript">Your speech will appear here...</div>
+    </div>
+
+    <script>
+        // Add these to your existing JavaScript
+        const recordButton = document.getElementById('recordButton');
+        const sttStatus = document.getElementById('sttStatus');
+        const transcriptOutput = document.getElementById('transcriptOutput');
+
+        let sttWs;
+        let mediaRecorder;
+        let recordingStream;
+        let isRecording = false;
+
+        // Initialize STT WebSocket connection
+        function connectSTTWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/stt_ws`;
+
+            sttWs = new WebSocket(wsUrl);
+
+            sttWs.onopen = () => {
+                console.log("STT WebSocket connected");
+                recordButton.disabled = false;
+            };
+
+            sttWs.onclose = () => {
+                console.log("STT WebSocket disconnected");
+                recordButton.disabled = true;
+                setTimeout(connectSTTWebSocket, 3000);
+            };
+
+            sttWs.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.transcript) {
+                    transcriptOutput.textContent = data.transcript;
+
+                    // Automatically use the transcript for TTS
+                    textInput.value = data.transcript;
+                    speakButton.click();
+                }
+            };
+        }
+
+        // Handle recording button
+        recordButton.addEventListener('click', async () => {
+            if (!isRecording) {
+                // Start recording
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true
+                        }
+                    });
+
+                    recordingStream = stream;
+
+                    const options = { mimeType: 'audio/webm' };
+                    mediaRecorder = new MediaRecorder(stream, options);
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0 && sttWs && sttWs.readyState === WebSocket.OPEN) {
+                            sttWs.send(event.data);
+                        }
+                    };
+
+                    mediaRecorder.start(1000);
+                    isRecording = true;
+                    recordButton.textContent = "Stop Recording";
+                    sttStatus.textContent = "Listening...";
+
+                } catch (err) {
+                    console.error("Error accessing microphone:", err);
+                    alert("Error accessing microphone permissions");
+                }
+            } else {
+                // Stop recording
+                if (mediaRecorder) {
+                    mediaRecorder.stop();
+
+                    if (sttWs && sttWs.readyState === WebSocket.OPEN) {
+                        sttWs.send("process");
+                    }
+
+                    sttStatus.textContent = "Processing...";
+                }
+
+                if (recordingStream) {
+                    recordingStream.getTracks().forEach(track => track.stop());
+                }
+
+                isRecording = false;
+                recordButton.textContent = "Start Recording";
+            }
+        });
+
+        // Connect to STT WebSocket when page loads
+        connectSTTWebSocket();
+    </script>
+
+</body>
+
+</html>

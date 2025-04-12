@@ -4,22 +4,26 @@ import torchaudio
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 from pydub import AudioSegment
 from config import DEVICE
+import uuid
 
-def convert_to_wav(file_path, output_dir="/tmp/converted_audio"):
+def convert_to_wav(file_path, output_dir="converted_audio"):
     os.makedirs(output_dir, exist_ok=True)
-    file_ext = os.path.splitext(file_path)[1].lower()
-
-    if file_ext == ".wav":
-        return file_path 
 
     try:
         audio = AudioSegment.from_file(file_path)
     except Exception as e:
-        raise ValueError(f"Could not read audio file: {file_path}. Error: {e}")
+        raise ValueError(f"[Audio Conversion] Could not read audio file: {file_path}. Error: {e}")
 
-    output_path = os.path.join(output_dir, os.path.basename(file_path) + ".wav")
-    audio.export(output_path, format="wav")
+    unique_filename = f"{uuid.uuid4()}.wav"
+    output_path = os.path.join(output_dir, unique_filename)
+
+    try:
+        audio.export(output_path, format="wav", codec="pcm_s16le")
+    except Exception as e:
+        raise ValueError(f"[Audio Export] Failed to export WAV file. Error: {e}")
+
     return output_path
+
 
 class SpeechRecognizer:
     _instance = None
@@ -57,6 +61,7 @@ class SpeechRecognizer:
 
     def transcribe(self, audio_path, language='english'):
         audio_path = convert_to_wav(audio_path)
+        print(f"[DEBUG] Using audio file: {audio_path}")
         audio_input = self.load_audio(audio_path)
 
         inputs = self.processor(

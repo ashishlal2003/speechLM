@@ -5,4 +5,6 @@ myenv/
 reference_audio.wav
 ai_response.wav
 local_uploads/
+models/
 backend/models/
+backend/converted_audio/
