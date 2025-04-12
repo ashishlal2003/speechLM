@@ -13,3 +13,5 @@ uvicorn
 python-multipart
 starlette 
 pymongo
+uvicorn[standard]
+realtimetts[coqui]

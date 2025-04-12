@@ -6,4 +6,5 @@ reference_audio.wav
 ai_response.wav
 local_uploads/
 models/
-converted_audio/
+backend/models/
+backend/converted_audio/
