@@ -12,6 +12,7 @@
   "dependencies": {
     "autoprefixer": "^10.4.21",
     "framer-motion": "^12.6.3",
+    "frontend": "file:",
     "lucide-react": "^0.487.0",
     "motion": "^12.6.3",
     "postcss": "^8.5.3",

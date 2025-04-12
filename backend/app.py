@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from config import AUDIO_FOLDER
 from routes import processing
 app = FastAPI()
 
