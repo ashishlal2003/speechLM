@@ -5,19 +5,29 @@ import requests
 from pydub import AudioSegment
 import uuid
 import numpy as np
+import re
 
 class TTS_Engine:
     _instance = None
 
     def __init__(self):
-        print("Loading XTTS v2 model...")
-        self.tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2").to(DEVICE)
+        print("Loading TTS model...")
+        # Choose a model better suited for streaming if possible
+        # VITS models are generally better for streaming applications
+        try:
+            self.tts = TTS(model_name="tts_models/en/vits/vits-ljspeech").to(DEVICE)
+            print("HERE HEHE")
+        except:
+            # Fall back to tacotron2 if VITS not available
+            # self.tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC").to(DEVICE)
+            self.tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2").to(DEVICE)
+            print("HERE HEHEfgdfgdf")
         print(f"✅ TTS Model loaded successfully on {DEVICE}")
         
         # Ensure reference audio is available
         reference_path = os.path.join(AUDIO_FOLDER, "reference_audio.wav")
         if not os.path.exists(reference_path):
-            print("Downloading sample reference voice (only used if needed)...")
+            print("Downloading sample reference voice...")
             url = "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav"
             try:
                 response = requests.get(url, stream=True)
@@ -31,7 +41,6 @@ class TTS_Engine:
                 raise RuntimeError("Reference audio download failed.")
 
         self.default_reference = reference_path
-
 
     @classmethod
     def get_instance(cls):
@@ -51,28 +60,60 @@ class TTS_Engine:
             return safe_path
         except Exception as e:
             raise ValueError(f"[TTS] Failed to convert reference audio: {e}")
-
-    def synthesize_to_pcm_chunks(self, text, sample_rate=22050, chunk_duration=0.25, reference_audio=None):
+    
+    def _split_into_sentences(self, text):
+        """Split text into sentences for incremental processing"""
+        # More robust sentence splitting than simple split('.')
+        sentences = re.split(r'(?<=[.!?])\s+', text)
+        return [s.strip() for s in sentences if s.strip()]
+    
+    def _chunk_audio(self, wav, sample_rate=22050, chunk_duration=0.25):
+        """Split audio array into chunks of specified duration"""
+        wav = np.array(wav, dtype="float32")
+        samples_per_chunk = int(sample_rate * chunk_duration)
+        total_samples = len(wav)
+        
+        for i in range(0, total_samples, samples_per_chunk):
+            chunk = wav[i:i + samples_per_chunk]
+            yield chunk.tobytes()
+    
+    async def synthesize_streaming(self, text, sample_rate=22050, reference_audio=None):
+        """
+        Incrementally synthesize text sentence by sentence and yield audio chunks
+        """
         try:
-            original_ref = reference_audio if reference_audio else self.default_reference
-            print(f"Using reference audio: {original_ref}")
+            # Process reference audio if needed (for XTTS models)
+            if "xtts" in self.tts.model_name:
+                original_ref = reference_audio if reference_audio else self.default_reference
+                speaker_wav = self._convert_reference_wav(original_ref)
             
-            speaker_wav = self._convert_reference_wav(original_ref)
-
-            wav = self.tts.tts(
-                text=text,
-                speaker_wav=speaker_wav,
-                language="en"
-            )
-            wav = np.array(wav, dtype="float32")
-            total_samples = len(wav)
-            samples_per_chunk = int(sample_rate * chunk_duration)
-
-            for i in range(0, total_samples, samples_per_chunk):
-                chunk = wav[i:i + samples_per_chunk]
-                yield chunk.tobytes()
+            # Split text into sentences and process each one
+            sentences = self._split_into_sentences(text)
+            
+            for sentence in sentences:
+                if not sentence:
+                    continue
+                    
+                # Add punctuation if missing to improve prosody
+                if sentence[-1] not in ['.', '!', '?']:
+                    sentence += '.'
+                
+                # Generate audio for this sentence
+                if "xtts" in self.tts.model_name:
+                    wav = self.tts.tts(
+                        text=sentence,
+                        speaker_wav=speaker_wav,
+                        language="en"
+                    )
+                else:
+                    wav = self.tts.tts(sentence)
+                
+                # Stream this sentence as chunks
+                for chunk in self._chunk_audio(wav, sample_rate):
+                    yield chunk
                 
         except Exception as e:
-            print(f"Error synthesizing speech to PCM chunks: {e}")
-            return None
+            print(f"Error in streaming synthesis: {e}")
+            # Don't return a value in an async generator
+            # Just stop yielding when there's an error
 

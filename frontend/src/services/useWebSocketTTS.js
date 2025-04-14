@@ -119,7 +119,7 @@ export default function useWebSocketTTS() {
       const arrayBuffer = reader.result;
 
       // Connect to WebSocket endpoint
-      socketRef.current = new WebSocket("ws://localhost:9009/ws/tts");
+      socketRef.current = new WebSocket("ws://localhost:8000/ws/tts");
       socketRef.current.binaryType = 'arraybuffer'; // Important for binary data
 
       socketRef.current.onopen = () => {
