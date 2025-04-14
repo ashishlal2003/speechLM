@@ -4,6 +4,7 @@ from config import DEVICE, AUDIO_FOLDER
 import requests
 from pydub import AudioSegment
 import uuid
+import numpy as np
 
 class TTS_Engine:
     _instance = None
@@ -44,30 +45,34 @@ class TTS_Engine:
     def _convert_reference_wav(self, input_path):
         try:
             audio = AudioSegment.from_file(input_path)
-            audio = audio.set_channels(1).set_sample_width(2).set_frame_rate(24000)  # Mono, 16-bit, 24kHz
+            audio = audio.set_channels(1).set_sample_width(2).set_frame_rate(24000)
             safe_path = os.path.join(AUDIO_FOLDER, f"converted_{uuid.uuid4()}.wav")
             audio.export(safe_path, format="wav", codec="pcm_s16le")
             return safe_path
         except Exception as e:
             raise ValueError(f"[TTS] Failed to convert reference audio: {e}")
 
-    def generate_speech(self, text, output_file, language="en", reference_audio=None):
+    def synthesize_to_pcm_chunks(self, text, sample_rate=22050, chunk_duration=0.25, reference_audio=None):
         try:
             original_ref = reference_audio if reference_audio else self.default_reference
             print(f"Using reference audio: {original_ref}")
             
-            # Convert the reference audio to a safe format
             speaker_wav = self._convert_reference_wav(original_ref)
 
-            self.tts.tts_to_file(
+            wav = self.tts.tts(
                 text=text,
-                file_path=output_file,
                 speaker_wav=speaker_wav,
-                language=language
+                language="en"
             )
-            print(f"✅ Speech generated and saved to {output_file}")
-            return output_file
+            wav = np.array(wav, dtype="float32")
+            total_samples = len(wav)
+            samples_per_chunk = int(sample_rate * chunk_duration)
+
+            for i in range(0, total_samples, samples_per_chunk):
+                chunk = wav[i:i + samples_per_chunk]
+                yield chunk.tobytes()
+                
         except Exception as e:
-            print(f"Error generating speech: {e}")
+            print(f"Error synthesizing speech to PCM chunks: {e}")
             return None
 
