@@ -1,6 +1,5 @@
 import VoiceRecorderApp from './components/VoiceRecorder/VoiceRecorderApp';
-import VoiceRecorder from './components/VoiceRecorder/VoiceRecorder';
-import LandingPage from './LandingPage';
+import LandingPage from './components/LandingPage';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
 function App() {
@@ -9,11 +8,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route  path='/' element={<LandingPage />}/>
-        <Route path='/tvara' element={<VoiceRecorder/>}/>
+        <Route path='/tvara' element={<VoiceRecorderApp />}/>
       </Routes>
-
-      {/* // <VoiceRecorderApp /> */}
-      
     </BrowserRouter>
 
 

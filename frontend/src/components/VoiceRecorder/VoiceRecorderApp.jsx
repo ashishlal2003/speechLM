@@ -8,7 +8,6 @@ import useWebSocketTTS from '../../services/useWebSocketTTS';
 
 export default function VoiceRecorderApp() {
   const [uploadStatus, setUploadStatus] = useState(null);
-  const [output, setOutput] = useState("");
 
   const {
     isRecording,
@@ -27,6 +26,7 @@ export default function VoiceRecorderApp() {
   } = useAudioRecorder();
 
   const { sendAudioBlob, status } = useWebSocketTTS();
+
 
   const sendRecording = async () => {
     if (!audioURL) return;
@@ -108,3 +108,4 @@ export default function VoiceRecorderApp() {
     </div>
   );
 }
+

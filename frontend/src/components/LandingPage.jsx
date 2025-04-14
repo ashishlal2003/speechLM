@@ -132,7 +132,7 @@ export default function TVARAHeroSection() {
               <div className="flex items-center">
                 <div className="relative">
                   <span className="text-white">T</span>
-                  <div className="absolute -top-1 -left-2 w-10 h-10 border-t-2 border-l-2 border-white opacity-30"></div>
+                  <div className="absolute top-1 -left-2 w-10 h-10 border-t-2 border-l-2 border-white opacity-30"></div>
                 </div>
                 <span className="text-gray-300">V</span>
                 <span className="text-gray-350">A</span>
@@ -175,7 +175,7 @@ export default function TVARAHeroSection() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center transform transition duration-1000"
             style={{ transitionDelay: '700ms', transform: isLoaded ? 'translateY(0)' : 'translateY(30px)', opacity: isLoaded ? 1 : 0 }}>
-            <button onClick={handleNavigate} className="px-8 py-4 bg-white text-black rounded-none hover:bg-gray-100 transition flex items-center justify-center group font-medium">
+            <button  onClick={handleNavigate} className=" cursor-pointer px-8 py-4 bg-white text-black rounded-none hover:bg-gray-100 transition flex items-center justify-center group font-medium">
               Experience TVARA
               <ArrowRight size={18} className="ml-2 transition-transform duration-300 group-hover:translate-x-1" />
             </button>
