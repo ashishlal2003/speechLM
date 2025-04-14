@@ -6,8 +6,7 @@ sudo apt install ffmpeg
 
 install req.txt in venv
 
-place audio files in backend/local_audio -> might need to create the folder
-
+BY DEFAULT BACKEND SHOULD RUN ON PORT 8000
 ## install node: 
 
 sudo apt install curl -y
