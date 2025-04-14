@@ -8,3 +8,4 @@ local_uploads/
 models/
 backend/models/
 backend/converted_audio/
+.vscode/
