@@ -4,7 +4,7 @@ import StatusDisplay from './StatusDisplay';
 import RecordButton from './RecordButton';
 import AudioPlayer from './AudioPlayer';
 import useAudioRecorder from '../../hooks/useAudioRecorder';
-import useWebSocketTTS from '../../services/useWebSocketTTS';
+import useWebSocketTTS from '../../hooks/useWebSocketTTS';
 
 export default function VoiceRecorderApp() {
   const [uploadStatus, setUploadStatus] = useState(null);
