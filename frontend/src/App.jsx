@@ -1,4 +1,4 @@
-import VoiceRecorderApp from './components/VoiceRecorder/VoiceRecorderApp';
+import VoiceRecorderApp from './pages/VoiceRecorderApp';
 import LandingPage from './pages/LandingPage';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
