@@ -1,5 +1,5 @@
 import VoiceRecorderApp from './components/VoiceRecorder/VoiceRecorderApp';
-import LandingPage from './components/LandingPage';
+import LandingPage from './pages/LandingPage';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
 function App() {
