@@ -1,49 +1,24 @@
-from services.LLM.utils import setup_genai, ai_response
-from services.STT.model import SpeechRecognizer
-from services.TTS_module.model import TTS_Engine
-from IPython.display import Audio, display
-from config import AUDIO_FOLDER
+from services.LLM.utils import ai_response
+import asyncio
+import json
 
-def speech_ai_pipeline(audio_path, api_key, reference_voice=None, language="en"):
-    """
-    Complete pipeline for speech recognition, AI response, and speech synthesis
-    
-    Parameters:
-    - audio_path: Path to the input audio file
-    - api_key: Google Gemini API key
-    - reference_voice: Path to a reference voice for cloning (optional, can be None)
-    - language: Language code (en, es, fr, etc.)
-    """
+async def speech_ai_pipeline(input_path, api_key, recognizer, llm_model, tts_engine, websocket):
+
+    transcription = recognizer.transcribe(input_path, language="en")
+    print(f"Transcribed: {transcription}")
+
+    response = ai_response(llm_model, transcription)
+    print(f"Response to synthesize: {response}")
+
     try:
-        # Initialize components
-        print("Setting up models...")
-        llm_model = setup_genai(api_key)
-        recognizer = SpeechRecognizer.get_instance()
-        tts_engine = TTS_Engine.get_instance()
-
-        # Transcribe input audio
-        print("\nTranscribing audio...")
-        transcription = recognizer.transcribe(audio_path, language)
-
-        # Get AI response
-        print("\nGetting AI response...")
-        ai_text_response = ai_response(llm_model, transcription)
-
-        # Generate speech from AI response
-        print("\nGenerating speech from response...")
-        tts_output = tts_engine.generate_speech(
-            text=ai_text_response,
-            output_file=f"{AUDIO_FOLDER}/ai_response.wav",
-            language=language,
-            reference_audio=reference_voice  # This can be None, it's perfectly fine!
-        )
-
-        return {
-            "transcription": transcription,
-            "ai_response": ai_text_response,
-            "tts_output": tts_output
-        }
-        
+        async for audio_chunk in tts_engine.synthesize_streaming(response):
+            if audio_chunk:
+                await websocket.send_bytes(audio_chunk)
+                await asyncio.sleep(0.01)
     except Exception as e:
-        print(f"Pipeline error: {str(e)}")
-        return {"error": str(e)}
+            print(f"Error during audio synthesis: {e}")
+            # Inform client about the error
+            await websocket.send_text(json.dumps({
+                "type": "error",
+                "message": "Audio synthesis failed"
+            }))
