@@ -16,7 +16,7 @@ This guide provides steps to set up the backend and frontend environments with P
 
 ### 1. Install System Dependencies
 
-```bash
+```bash 
 sudo apt update
 sudo apt install -y ffmpeg
 ```
