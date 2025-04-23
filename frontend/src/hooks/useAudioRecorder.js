@@ -7,15 +7,22 @@ export default function useAudioRecorder() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [isSilent, setIsSilent] = useState(false);
   
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const timerRef = useRef(null);
+  const silenceTimerRef = useRef(null);
+  const analyserRef = useRef(null);
+  const silenceStartRef = useRef(null);
+  const silenceThresholdRef = useRef(15); // Silence detection threshold in dB
+  const silenceDurationRef = useRef(1500); // 1.5 seconds of silence to auto-stop
   
+  // Clean up on unmount
   useEffect(() => {
-    // Clean up function to handle component unmount
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (silenceTimerRef.current) clearInterval(silenceTimerRef.current);
       if (audioURL) URL.revokeObjectURL(audioURL);
     };
   }, [audioURL]);
@@ -30,10 +37,55 @@ export default function useAudioRecorder() {
       return stream;
     } catch (err) {
       setIsLoading(false);
-      setError("Microphone permission denied. Please allow access to record audio.",err);
+      setError("Microphone permission denied. Please allow access to record audio.");
       setPermissionGranted(false);
       return null;
     }
+  };
+
+  // Setup audio analyzer for voice activity detection
+  const setupVoiceActivityDetection = (stream) => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioContext.createAnalyser();
+    const microphone = audioContext.createMediaStreamSource(stream);
+    
+    microphone.connect(analyser);
+    analyser.fftSize = 256;
+    analyserRef.current = analyser;
+    
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
+    // Monitor audio levels
+    silenceTimerRef.current = setInterval(() => {
+      if (!isRecording) return;
+      
+      analyser.getByteFrequencyData(dataArray);
+      
+      // Calculate volume level (rough approximation)
+      let sum = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        sum += dataArray[i];
+      }
+      
+      const average = sum / bufferLength;
+      const dB = 20 * Math.log10(average / 255);
+      
+      if (dB < -silenceThresholdRef.current) {
+        // If silence detected
+        if (silenceStartRef.current === null) {
+          silenceStartRef.current = Date.now();
+          setIsSilent(true);
+        } else if (Date.now() - silenceStartRef.current > silenceDurationRef.current) {
+          // If silence lasted long enough, stop recording
+          stopRecording(true); // Auto-submission
+        }
+      } else {
+        // If voice detected
+        silenceStartRef.current = null;
+        setIsSilent(false);
+      }
+    }, 100);
   };
 
   const startRecording = async () => {
@@ -63,6 +115,13 @@ export default function useAudioRecorder() {
       setRecordingTime(0);
     };
     
+    // Reset silence detection
+    silenceStartRef.current = null;
+    setIsSilent(false);
+    
+    // Setup voice activity detection
+    setupVoiceActivityDetection(stream);
+    
     mediaRecorder.start();
     setIsRecording(true);
     
@@ -73,7 +132,7 @@ export default function useAudioRecorder() {
     }, 1000);
   };
 
-  const stopRecording = () => {
+  const stopRecording = (autoSubmit = false) => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
@@ -81,12 +140,20 @@ export default function useAudioRecorder() {
       // Stop all tracks in the stream
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
       
-      // Clear timer
+      // Clear timers
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
+      
+      if (silenceTimerRef.current) {
+        clearInterval(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      
+      return autoSubmit;
     }
+    return false;
   };
 
   const deleteRecording = () => {
@@ -108,6 +175,7 @@ export default function useAudioRecorder() {
     isLoading,
     error,
     recordingTime,
+    isSilent,
     setIsLoading,
     setError,
     requestMicrophonePermission,
@@ -117,3 +185,5 @@ export default function useAudioRecorder() {
     getAudioBlob
   };
 }
+
+

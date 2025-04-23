@@ -24,7 +24,7 @@ export default function HeroSection({ heroRef, scrollToRef, featuresRef, isLoade
                     playsInline
                     className="absolute w-full h-full object-cover filter grayscale z-10 opacity-25"
                 >
-                    <source src="https://assets.mixkit.co/videos/1962/1962-720.mp4" type="video/mp4" />
+                    <source src={videourl} type="video/mp4" />
                     {/* Fallback for when video doesn't load */}
                     <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-900 to-black"></div>
                 </video>
