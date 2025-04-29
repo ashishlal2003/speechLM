@@ -53,12 +53,15 @@ async def stt_ws(websocket: WebSocket):
                 binary_audio = await websocket.receive_bytes()
                 print(f"[DEBUG] Received audio data of size: {len(binary_audio)} bytes")
 
+                wav_file = pcm_to_wav(
+                    pcm_data=binary_audio, sample_rate=44100)
+ 
                 input_path = os.path.join(AUDIO_FOLDER, f"stream_input_{uuid.uuid4()}.wav")
                 print(f"[DEBUG] Saving audio to: {input_path}")
 
                 # Save the audio to a temporary file
                 with open(input_path, "wb") as f:
-                    f.write(binary_audio)
+                    f.write(wav_file)
 
                 # Transcribe the audio
                 transcription = recognizer.transcribe(input_path, language="en")
