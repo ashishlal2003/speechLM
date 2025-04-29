@@ -64,7 +64,7 @@ class TTS_Engine:
     def _split_into_sentences(self, text):
         """Split text into sentences for incremental processing"""
         # More robust sentence splitting than simple split('.')
-        sentences = re.split(r'(?<=[.!?])\s+', text)
+        sentences = re.split(r'(?<=[.!?,:;])\s+', text)
         return [s.strip() for s in sentences if s.strip()]
     
     def _chunk_audio(self, wav, sample_rate=22050, chunk_duration=0.25):
