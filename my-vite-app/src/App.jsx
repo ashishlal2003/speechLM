@@ -1,90 +1,125 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { OrbitControls, Environment, Float } from "@react-three/drei";
+import * as THREE from "three";
+import "./App.css";
+
+
+function VibratingSphere({ amplitude }) {
+  const meshRef = useRef();
+
+  useFrame(() => {
+    if (!meshRef.current) return;
+
+    meshRef.current.rotation.y += 0.01;
+    meshRef.current.rotation.x += 0.005;
+
+    const scale = 1 + Math.min(amplitude * 2, 0.3);
+    meshRef.current.scale.set(scale, scale, scale);
+
+    const material = meshRef.current.material;
+    material.emissiveIntensity = amplitude * 2;
+    material.color.setHSL(0.6 - amplitude * 0.5, 1, 0.6 + amplitude * 0.3);
+  });
+
+  return (
+    <group>
+      <mesh ref={meshRef}>
+        <sphereGeometry args={[1, 64, 64]} />
+        <meshStandardMaterial
+          color="#66ccff"
+          metalness={0.5}
+          roughness={0.1}
+          emissive={"#00aaff"}
+          emissiveIntensity={0.2}
+        />
+      </mesh>
+      
+      <mesh scale={1.05}>
+        <sphereGeometry args={[1, 32, 32]} />
+        <meshBasicMaterial 
+          color="#66ccff" 
+          transparent 
+          opacity={0.1 + amplitude * 0.2} 
+        />
+      </mesh>
+    </group>
+  );
+}
+
+
+function ParticleField({ amplitude }) {
+  const particlesRef = useRef();
+  const count = 100;
+  
+  const positions = useMemo(() => {
+    const positions = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const radius = 2 + Math.random() * 1.5;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      
+      positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = radius * Math.cos(phi);
+    }
+    return positions;
+  }, []);
+  
+  useFrame(() => {
+    if (!particlesRef.current) return;
+    
+    particlesRef.current.rotation.y += 0.001;
+    
+    const positionAttribute = particlesRef.current.geometry.attributes.position;
+    const sizes = particlesRef.current.geometry.attributes.size;
+    
+    for (let i = 0; i < count; i++) {
+      sizes.array[i] = 0.05 + amplitude * 0.1;
+    }
+    
+    sizes.needsUpdate = true;
+  });
+}
+
 
 function App() {
-  const [sttSocket, setSttSocket] = useState(null);
-  const [ttsSocket, setTtsSocket] = useState(null);
-  const [transcription, setTranscription] = useState("");
-  const [textToSynthesize, setTextToSynthesize] = useState("");
-  const [isListening, setIsListening] = useState(false);
-  
-  // Refs for VAD processing
-  const audioContextRef = useRef(null);
-  const streamRef = useRef(null);
-  const processorRef = useRef(null);
-  const audioBufferRef = useRef([]);
-  const isSpeakingRef = useRef(false);
-  const silenceStartRef = useRef(null);
-  
-  // IMPORTANT: Store socket reference directly in ref for reliable access in audio processor
-  const sttSocketRef = useRef(null);
-  
-  // Refs for TTS audio playback
+  const [socket, setSocket] = useState(null);
+  const [amplitude, setAmplitude] = useState(0);
+  const mediaRecorderRef = useRef(null);
+
   const audioQueueRef = useRef([]);
+  const audioContextRef = useRef(null);
   const isPlayingRef = useRef(false);
 
   useEffect(() => {
-    // Create WebSocket connections
-    const sttWs = new WebSocket("ws://localhost:8000/ws/stt");
-    const ttsWs = new WebSocket("ws://localhost:8000/ws/tts");
-    
-    // Store socket reference in ref immediately for direct access
-    sttSocketRef.current = sttWs;
-    
-    // Set binary type for proper binary data transmission
-    sttWs.binaryType = "arraybuffer";
+    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    const ws = new WebSocket("ws://localhost:8000/ws/processing");
+    setSocket(ws);
+    ws.binaryType = "arraybuffer";
 
-    sttWs.onopen = () => {
-      console.log("STT WebSocket connection established");
-      setSttSocket(sttWs);
-    };
-
-    sttWs.onclose = () => {
-      console.log("STT WebSocket connection closed");
-      // Clear the refs when connection is closed
-      sttSocketRef.current = null;
-      setSttSocket(null);
-    };
-
-    sttWs.onmessage = (event) => {
-      try {
+    ws.onmessage = async (event) => {
+      if (typeof event.data === "string") {
         const data = JSON.parse(event.data);
         if (data.type === "transcription") {
-          setTranscription(data.text);
+          console.log("[Socket] Received transcription:", data.text);
+        } else if (data.type === "complete") {
+          console.log("[Socket] TTS response complete");
+        } else if (data.type === "error") {
+          console.error("[Socket] Error:", data.message);
         }
-      } catch (error) {
-        console.error("Error parsing STT WebSocket message:", error);
+      } else {
+        const audioBuffer = await audioContextRef.current.decodeAudioData(event.data);
+        audioQueueRef.current.push(audioBuffer);
+        if (!isPlayingRef.current) playAudioQueue();
       }
     };
-
-    ttsWs.onmessage = async (event) => {
-      const arrayBuffer = await event.data.arrayBuffer();
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
-      audioQueueRef.current.push(audioBuffer);
-      if (!isPlayingRef.current) {
-        playAudioQueue();
-      }
-    };
-
-    setTtsSocket(ttsWs);
 
     return () => {
-      stopVAD();
-      sttWs.close();
-      ttsWs.close();
-      // Clear the refs when component unmounts
-      sttSocketRef.current = null;
+      ws.close();
+      audioContextRef.current?.close();
     };
   }, []);
-
-  // Start listening automatically when WebSocket is ready
-  useEffect(() => {
-    if (sttSocket && !isListening) {
-      startContinuousVAD();
-    }
-  }, [sttSocket, isListening]);
 
   const playAudioQueue = () => {
     if (audioQueueRef.current.length === 0) {
@@ -94,334 +129,102 @@ function App() {
 
     isPlayingRef.current = true;
     const buffer = audioQueueRef.current.shift();
-    
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    }
-
     const source = audioContextRef.current.createBufferSource();
     source.buffer = buffer;
+
+    const analyser = audioContextRef.current.createAnalyser();
+    source.connect(analyser);
     source.connect(audioContextRef.current.destination);
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    const updateAmplitude = () => {
+      analyser.getByteTimeDomainData(dataArray);
+      const norm = dataArray.reduce((a, b) => a + Math.abs(b - 128), 0) / dataArray.length;
+      setAmplitude(norm / 128);
+      if (isPlayingRef.current) requestAnimationFrame(updateAmplitude);
+    };
+
+    updateAmplitude();
     source.start();
     source.onended = playAudioQueue;
   };
 
-  const startContinuousVAD = async () => {
-    if (isListening) return;
-    
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      audioContextRef.current = audioContext;
-      
-      const source = audioContext.createMediaStreamSource(stream);
-      const processor = audioContext.createScriptProcessor(4096, 1, 1);
-      processorRef.current = processor;
-      
-      source.connect(processor);
-      processor.connect(audioContext.destination);
-      
-      const silenceThreshold = 0.01;
-      const silenceDurationLimit = 1000; // ms
-      
-      // Reset state
-      audioBufferRef.current = [];
-      isSpeakingRef.current = false;
-      silenceStartRef.current = null;
-      
-      processor.onaudioprocess = (event) => {
-        const input = event.inputBuffer.getChannelData(0);
-        
-        // Calculate RMS for voice activity detection
-        const rms = Math.sqrt(
-          input.reduce((acc, x) => acc + x * x, 0) / input.length
-        );
-        
-        if (rms > silenceThreshold) {
-          // Voice detected
-          silenceStartRef.current = null;
-          
-          if (!isSpeakingRef.current) {
-            console.log("Speech started");
-            isSpeakingRef.current = true;
-            // Clear buffer when starting new speech
-            audioBufferRef.current = [];
-          }
-          
-          // Copy audio data to buffer
-          const inputCopy = new Float32Array(input.length);
-          inputCopy.set(input);
-          audioBufferRef.current.push(inputCopy);
-          
-        } else if (isSpeakingRef.current) {
-          // Silence after speech
-          if (!silenceStartRef.current) {
-            silenceStartRef.current = Date.now();
-          }
-          
-          // If silence duration exceeds limit, process the audio
-          if (Date.now() - silenceStartRef.current > silenceDurationLimit) {
-            console.log("Speech ended, processing audio");
-            isSpeakingRef.current = false;
-            
-            // Process the accumulated audio data
-            const totalLength = audioBufferRef.current.reduce((acc, buf) => acc + buf.length, 0);
-            if (totalLength > 0) {
-              // Merge all audio buffers
-              const mergedBuffer = new Float32Array(totalLength);
-              let offset = 0;
-              for (const buffer of audioBufferRef.current) {
-                mergedBuffer.set(buffer, offset);
-                offset += buffer.length;
-              }
-              
-              // Convert float32 (-1.0 to 1.0) to int16 (-32768 to 32767)
-              const pcmBuffer = new Int16Array(mergedBuffer.length);
-              for (let i = 0; i < mergedBuffer.length; i++) {
-                const sample = Math.max(-1, Math.min(1, mergedBuffer[i]));
-                pcmBuffer[i] = Math.round(sample < 0 ? sample * 0x8000 : sample * 0x7FFF);
-              }
-              
-              // IMPORTANT: Use the direct ref to the WebSocket instead of the state variable
-              if (sttSocketRef.current && sttSocketRef.current.readyState === WebSocket.OPEN) {
-                console.log(`Sending ${pcmBuffer.buffer.byteLength} bytes of audio data`);
-                sttSocketRef.current.send(pcmBuffer.buffer);
-              } else {
-                console.error("WebSocket not ready:", 
-                  sttSocketRef.current ? `State: ${sttSocketRef.current.readyState}` : "Socket is null");
-              }
-            }
-            
-            // Reset buffer for next utterance
-            audioBufferRef.current = [];
-            silenceStartRef.current = null;
-          }
-        }
-      };
-      
-      setIsListening(true);
-      console.log("Continuous listening started");
-      
-    } catch (error) {
-      console.error("Error starting VAD:", error);
-    }
-  };
-  
-  const stopVAD = () => {
-    if (processorRef.current) {
-      processorRef.current.disconnect();
-      processorRef.current = null;
-    }
-    
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    
-    setIsListening(false);
-    console.log("VAD stopped");
-  };
+  const startRecording = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaStreamSource(stream);
+    const processor = audioContext.createScriptProcessor(4096, 1, 1);
 
-  const handleTts = () => {
-    if (textToSynthesize && ttsSocket && ttsSocket.readyState === WebSocket.OPEN) {
-      ttsSocket.send(JSON.stringify({ text: textToSynthesize }));
-    }
+    source.connect(processor);
+    processor.connect(audioContext.destination);
+
+    const silenceThreshold = 0.01;
+    const silenceDurationLimit = 1000;
+    let silenceStart = null;
+    let userSpeaking = false;
+
+    let audioBuffer = [];
+
+    processor.onaudioprocess = (event) => {
+      const input = event.inputBuffer.getChannelData(0);
+      const rms = Math.sqrt(input.reduce((acc, x) => acc + x * x, 0) / input.length);
+      setAmplitude(rms);
+
+      if (rms > silenceThreshold) {
+        silenceStart = null;
+        if (!userSpeaking) {
+          userSpeaking = true;
+          console.log("[VAD] User started speaking");
+        }
+        audioBuffer.push(...input);
+      } else if (userSpeaking) {
+        if (!silenceStart) silenceStart = Date.now();
+        if (Date.now() - silenceStart > silenceDurationLimit) {
+          userSpeaking = false;
+          silenceStart = null;
+          console.log("[VAD] User stopped speaking");
+
+          processor.disconnect();
+          source.disconnect();
+          stream.getTracks().forEach((track) => track.stop());
+
+          const pcm = audioBuffer.map((sample) => sample * 32767);
+          const buffer = new Int16Array(pcm);
+
+          if (socket && socket.readyState === WebSocket.OPEN) {
+            console.log("[Socket] Sending audio buffer to server...");
+            socket.send(buffer.buffer);
+          }
+
+          audioBuffer = [];
+        }
+      }
+    };
   };
 
   return (
-    <div>
-      <h1>Speech-to-Text and Text-to-Speech Test</h1>
+    <div className="App">
+      <Canvas className="canvas">
+        <ambientLight intensity={0.3} />
+        <pointLight position={[10, 10, 10]} intensity={1.5} />
+        <spotLight position={[-10, 10, 10]} angle={0.3} penumbra={1} intensity={0.8} castShadow />
+        
+        <color attach="background" args={['#050520']} />
+        
+        <VibratingSphere amplitude={amplitude} />
+        <ParticleField amplitude={amplitude} />
+        
+        <OrbitControls enableZoom={false} />
+      </Canvas>
 
-      <h2>Speech-to-Text</h2>
-      <div>Status: {isListening ? "Listening (VAD Active)" : "Not Listening"}</div>
-      <button onClick={startContinuousVAD} disabled={isListening || !sttSocket}>
-        Start Listening
-      </button>
-      <button onClick={stopVAD} disabled={!isListening}>
-        Stop Listening
-      </button>
-      <div>Transcription: {transcription}</div>
-
-      <h2>Text-to-Speech</h2>
-      <textarea
-        rows="4"
-        cols="50"
-        placeholder="Type text here..."
-        value={textToSynthesize}
-        onChange={(e) => setTextToSynthesize(e.target.value)}
-      ></textarea>
-      <br />
-      <button onClick={handleTts}>Start TTS</button>
+      <div className="overlay">
+        <button onClick={startRecording} className="speak-button">
+          🎙️ Speak
+        </button>
+      </div>
     </div>
   );
 }
 
+
 export default App;
-
-// import React, { useEffect, useRef, useState } from "react";
-
-// function App() {
-//   const [sttSocket, setSttSocket] = useState(null);
-//   const [ttsSocket, setTtsSocket] = useState(null);
-//   const [transcription, setTranscription] = useState("");
-//   const [textToSynthesize, setTextToSynthesize] = useState("");
-//   const mediaRecorderRef = useRef(null);
-
-//   // Refs for real-time audio playback
-//   const audioQueueRef = useRef([]);
-//   const audioContextRef = useRef(null);
-//   const isPlayingRef = useRef(false);
-
-//   useEffect(() => {
-//     // Create AudioContext only once
-//     audioContextRef.current = new (window.AudioContext ||
-//       window.webkitAudioContext)();
-
-//     const sttWs = new WebSocket("ws://localhost:8000/ws/stt");
-//     const ttsWs = new WebSocket("ws://localhost:8000/ws/tts");
-
-//     sttWs.onmessage = (event) => {
-//       const data = JSON.parse(event.data);
-//       if (data.type === "transcription") {
-//         setTranscription(data.text);
-//       }
-//     };
-
-//     ttsWs.onmessage = async (event) => {
-//       const arrayBuffer = await event.data.arrayBuffer();
-//       const audioBuffer = await audioContextRef.current.decodeAudioData(
-//         arrayBuffer
-//       );
-
-//       // Push to playback queue
-//       audioQueueRef.current.push(audioBuffer);
-//       if (!isPlayingRef.current) {
-//         playAudioQueue();
-//       }
-//     };
-
-//     setSttSocket(sttWs);
-//     setTtsSocket(ttsWs);
-
-//     return () => {
-//       sttWs.close();
-//       ttsWs.close();
-//       if (audioContextRef.current) {
-//         audioContextRef.current.close();
-//       }
-//     };
-//   }, []);
-
-//   const playAudioQueue = () => {
-//     if (audioQueueRef.current.length === 0) {
-//       isPlayingRef.current = false;
-//       return;
-//     }
-
-//     isPlayingRef.current = true;
-//     const buffer = audioQueueRef.current.shift();
-
-//     const source = audioContextRef.current.createBufferSource();
-//     source.buffer = buffer;
-//     source.connect(audioContextRef.current.destination);
-//     source.start();
-
-//     source.onended = () => {
-//       playAudioQueue();
-//     };
-//   };
-
-//   const startRecording = async () => {
-//     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-//     const audioContext = new (window.AudioContext ||
-//       window.webkitAudioContext)();
-//     const source = audioContext.createMediaStreamSource(stream);
-//     const processor = audioContext.createScriptProcessor(4096, 1, 1);
-
-//     source.connect(processor);
-//     processor.connect(audioContext.destination);
-
-//     const silenceThreshold = 0.01; // Adjust based on mic sensitivity
-//     const silenceDurationLimit = 1000; // in ms
-//     let silenceStart = null;
-//     let isSpeaking = false;
-
-//     // Buffer to accumulate audio data
-//     let audioBuffer = [];
-
-//     processor.onaudioprocess = async (event) => {
-//       const input = event.inputBuffer.getChannelData(0);
-//       const rms = Math.sqrt(
-//         input.reduce((acc, x) => acc + x * x, 0) / input.length
-//       );
-
-//       if (rms > silenceThreshold) {
-//         // Detected speaking
-//         silenceStart = null;
-//         if (!isSpeaking) {
-//           isSpeaking = true;
-//           console.log("[VAD] Started speaking");
-//         }
-
-//         // Buffer audio while speaking
-//         audioBuffer.push(...input);
-//       } else if (isSpeaking) {
-//         // Detected silence, stop recording
-//         if (!silenceStart) silenceStart = Date.now();
-//         if (Date.now() - silenceStart > silenceDurationLimit) {
-//           isSpeaking = false;
-//           console.log("[VAD] Detected silence. Stopping speaking...");
-//           silenceStart = null;
-
-//           // Stop the audio stream
-//           processor.disconnect();
-//           source.disconnect();
-//           stream.getTracks().forEach((track) => track.stop());
-
-//           // Convert buffered audio to Int16 PCM format and send once
-//           const pcm = audioBuffer.map((sample) => sample * 32767); // float32 to int16
-//           const buffer = new Int16Array(pcm);
-
-//           // Send the final buffered audio as a single chunk to the backend
-//           if (sttSocket && sttSocket.readyState === WebSocket.OPEN) {
-//             sttSocket.send(buffer.buffer);
-//           }
-
-//           // Reset the audio buffer for the next recording
-//           audioBuffer = [];
-//         }
-//       }
-//     };
-//   };
-
-//   const handleTts = () => {
-//     if (textToSynthesize && ttsSocket) {
-//       ttsSocket.send(JSON.stringify({ text: textToSynthesize }));
-//     }
-//   };
-
-//   return (
-//     <div>
-//       <h1>Speech-to-Text and Text-to-Speech Test</h1>
-
-//       <h2>Speech-to-Text</h2>
-//       <button onClick={startRecording}>Start STT</button>
-//       <div>Transcription: {transcription}</div>
-
-//       <h2>Text-to-Speech</h2>
-//       <textarea
-//         rows="4"
-//         cols="50"
-//         placeholder="Type text here..."
-//         value={textToSynthesize}
-//         onChange={(e) => setTextToSynthesize(e.target.value)}
-//       ></textarea>
-//       <br />
-//       <button onClick={handleTts}>Start TTS</button>
-//     </div>
-//   );
-// }
-
-// export default App;

@@ -19,8 +19,8 @@ class TTS_Engine:
             print("HERE HEHE")
         except:
             # Fall back to tacotron2 if VITS not available
-            # self.tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC").to(DEVICE)
-            self.tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2").to(DEVICE)
+            self.tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC").to(DEVICE)
+            # self.tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2").to(DEVICE)
             print("HERE HEHEfgdfgdf")
         print(f"✅ TTS Model loaded successfully on {DEVICE}")
         
