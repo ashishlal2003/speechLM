@@ -19,8 +19,8 @@ class TTS_Engine:
             print("HERE HEHE")
         except:
             # Fall back to tacotron2 if VITS not available
-            # self.tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC").to(DEVICE)
-            self.tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2").to(DEVICE)
+            self.tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC").to(DEVICE)
+            # self.tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2").to(DEVICE)
             print("HERE HEHEfgdfgdf")
         print(f"✅ TTS Model loaded successfully on {DEVICE}")
         
@@ -64,7 +64,7 @@ class TTS_Engine:
     def _split_into_sentences(self, text):
         """Split text into sentences for incremental processing"""
         # More robust sentence splitting than simple split('.')
-        sentences = re.split(r'(?<=[.!?])\s+', text)
+        sentences = re.split(r'(?<=[.!?,:;])\s+', text)
         return [s.strip() for s in sentences if s.strip()]
     
     def _chunk_audio(self, wav, sample_rate=22050, chunk_duration=0.25):
