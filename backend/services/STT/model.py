@@ -85,5 +85,7 @@ class SpeechRecognizer:
             skip_special_tokens=True
         )[0]
 
+        os.remove(audio_path)
+
         print("Transcription:", transcription)
         return transcription

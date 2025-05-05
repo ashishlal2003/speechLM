@@ -1,49 +1,71 @@
-from services.LLM.utils import setup_genai, ai_response
-from services.STT.model import SpeechRecognizer
-from services.TTS_module.model import TTS_Engine
-from IPython.display import Audio, display
+from utils import float32_to_int16, pcm_to_wav
+import os
 from config import AUDIO_FOLDER
+from services.LLM.utils import ai_response
+import uuid
+import json
 
-def speech_ai_pipeline(audio_path, api_key, reference_voice=None, language="en"):
-    """
-    Complete pipeline for speech recognition, AI response, and speech synthesis
-    
-    Parameters:
-    - audio_path: Path to the input audio file
-    - api_key: Google Gemini API key
-    - reference_voice: Path to a reference voice for cloning (optional, can be None)
-    - language: Language code (en, es, fr, etc.)
-    """
+async def speech_ai_pipeline(recognizer, llm_model, tts_engine, websocket):
     try:
-        # Initialize components
-        print("Setting up models...")
-        llm_model = setup_genai(api_key)
-        recognizer = SpeechRecognizer.get_instance()
-        tts_engine = TTS_Engine.get_instance()
+        binary_audio = await websocket.receive_bytes()
+        print(f"[DEBUG] Received audio data of size: {len(binary_audio)} bytes")
 
-        # Transcribe input audio
-        print("\nTranscribing audio...")
-        transcription = recognizer.transcribe(audio_path, language)
-
-        # Get AI response
-        print("\nGetting AI response...")
-        ai_text_response = ai_response(llm_model, transcription)
-
-        # Generate speech from AI response
-        print("\nGenerating speech from response...")
-        tts_output = tts_engine.generate_speech(
-            text=ai_text_response,
-            output_file=f"{AUDIO_FOLDER}/ai_response.wav",
-            language=language,
-            reference_audio=reference_voice  # This can be None, it's perfectly fine!
+        wav_file = pcm_to_wav(
+            pcm_data=binary_audio, sample_rate=44100
         )
 
-        return {
-            "transcription": transcription,
-            "ai_response": ai_text_response,
-            "tts_output": tts_output
-        }
-        
+        input_path = os.path.join(AUDIO_FOLDER, f"stream_input_{uuid.uuid4()}.wav")
+        print(f"[DEBUG] Saving audio to: {input_path}")
+
+        with open(input_path, "wb") as f:
+            f.write(wav_file)
+
+        transcription = recognizer.transcribe(input_path, language="en")
+        print(f"[DEBUG] Transcription result: {transcription}")
+
+        if websocket.client_state.name == "CONNECTED":
+            await websocket.send_text(json.dumps({"type": "transcription", "text": transcription}))
+            print("[DEBUG] Transcription sent to client")
+
+        os.remove(input_path)
+        print(f"[DEBUG] Temporary file deleted: {input_path}")
+
     except Exception as e:
-        print(f"Pipeline error: {str(e)}")
-        return {"error": str(e)}
+        print(f"[ERROR] Error in STT WebSocket: {e}")
+        if websocket.client_state.name == "CONNECTED":
+            await websocket.send_text(json.dumps({"type": "error", "message": str(e)}))
+        return
+
+    response = ai_response(llm_model, transcription)
+    print(f"[DEBUG] Response to synthesize: {response}")
+
+    try:
+        sentences = tts_engine._split_into_sentences(response)
+        print(f"[DEBUG] Split text into sentences: {sentences}")
+        for sentence in sentences:
+            print(f"[DEBUG] Streaming sentence: {sentence}")
+            async for audio_chunk in tts_engine.synthesize_streaming(sentence):
+                if audio_chunk and websocket.client_state.name == "CONNECTED":
+                    int16_chunk = float32_to_int16(audio_chunk)
+                    wav_data = pcm_to_wav(
+                        pcm_data=int16_chunk,
+                        sample_rate=22050,
+                        num_channels=1,
+                        sample_width=2
+                    )
+                    await websocket.send_bytes(wav_data)
+
+        if websocket.client_state.name == "CONNECTED":
+            await websocket.send_text(json.dumps({"type": "complete"}))
+            print("[DEBUG] TTS streaming complete")
+
+    except Exception as e:
+        print(f"[ERROR] Error during audio synthesis: {e}")
+        if websocket.client_state.name == "CONNECTED":
+            await websocket.send_text(json.dumps({
+                "type": "error",
+                "message": "Audio synthesis failed"
+            }))
+
+    finally:
+        print("[DEBUG] WebSocket pipeline finished")

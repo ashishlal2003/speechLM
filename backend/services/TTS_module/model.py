@@ -12,19 +12,14 @@ class TTS_Engine:
 
     def __init__(self):
         print("Loading TTS model...")
-        # Choose a model better suited for streaming if possible
-        # VITS models are generally better for streaming applications
         try:
             self.tts = TTS(model_name="tts_models/en/vits/vits-ljspeech").to(DEVICE)
             print("HERE HEHE")
         except:
-            # Fall back to tacotron2 if VITS not available
-            # self.tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC").to(DEVICE)
             self.tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2").to(DEVICE)
             print("HERE HEHEfgdfgdf")
         print(f"✅ TTS Model loaded successfully on {DEVICE}")
         
-        # Ensure reference audio is available
         reference_path = os.path.join(AUDIO_FOLDER, "reference_audio.wav")
         if not os.path.exists(reference_path):
             print("Downloading sample reference voice...")
@@ -51,20 +46,10 @@ class TTS_Engine:
             cls._instance = cls()
         return cls._instance
     
-    def _convert_reference_wav(self, input_path):
-        try:
-            audio = AudioSegment.from_file(input_path)
-            audio = audio.set_channels(1).set_sample_width(2).set_frame_rate(24000)
-            safe_path = os.path.join(AUDIO_FOLDER, f"converted_{uuid.uuid4()}.wav")
-            audio.export(safe_path, format="wav", codec="pcm_s16le")
-            return safe_path
-        except Exception as e:
-            raise ValueError(f"[TTS] Failed to convert reference audio: {e}")
     
     def _split_into_sentences(self, text):
         """Split text into sentences for incremental processing"""
-        # More robust sentence splitting than simple split('.')
-        sentences = re.split(r'(?<=[.!?])\s+', text)
+        sentences = re.split(r'(?<=[.!?,:;])\s+', text)
         return [s.strip() for s in sentences if s.strip()]
     
     def _chunk_audio(self, wav, sample_rate=22050, chunk_duration=0.25):
@@ -82,38 +67,30 @@ class TTS_Engine:
         Incrementally synthesize text sentence by sentence and yield audio chunks
         """
         try:
-            # Process reference audio if needed (for XTTS models)
             if "xtts" in self.tts.model_name:
                 original_ref = reference_audio if reference_audio else self.default_reference
-                speaker_wav = self._convert_reference_wav(original_ref)
             
-            # Split text into sentences and process each one
             sentences = self._split_into_sentences(text)
             
             for sentence in sentences:
                 if not sentence:
                     continue
                     
-                # Add punctuation if missing to improve prosody
                 if sentence[-1] not in ['.', '!', '?']:
                     sentence += '.'
                 
-                # Generate audio for this sentence
                 if "xtts" in self.tts.model_name:
                     wav = self.tts.tts(
                         text=sentence,
-                        speaker_wav=speaker_wav,
+                        speaker_wav=original_ref,
                         language="en"
                     )
                 else:
                     wav = self.tts.tts(sentence)
                 
-                # Stream this sentence as chunks
                 for chunk in self._chunk_audio(wav, sample_rate):
                     yield chunk
                 
         except Exception as e:
             print(f"Error in streaming synthesis: {e}")
-            # Don't return a value in an async generator
-            # Just stop yielding when there's an error
 
