@@ -23,9 +23,9 @@ export default function TestimonialsSection({ testimonialsRef, scrollY }) {
         <section
             ref={testimonialsRef}
             className="pt-24 relative overflow-hidden"
-            style={{
-                background: 'linear-gradient(to bottom, #101010, #050505)'
-            }}
+            // style={{
+            //     background: 'linear-gradient(to bottom, #101010, #050505)'
+            // }}
         >
             {/* Parallax decorative elements */}
             <div

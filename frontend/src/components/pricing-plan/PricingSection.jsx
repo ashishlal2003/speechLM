@@ -53,7 +53,7 @@ export default function PricingSection({ pricingRef, scrollY }) {
     <section
       ref={pricingRef}
       className="pt-24 relative overflow-hidden"
-      style={{ background: 'linear-gradient(to bottom, #050505, #000000)' }}
+      // style={{ background: 'linear-gradient(to bottom, #050505, #000000)' }}
     >
       {/* Parallax decorative elements */}
       <div

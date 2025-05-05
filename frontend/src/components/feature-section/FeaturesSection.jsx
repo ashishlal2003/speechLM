@@ -45,7 +45,7 @@ export default function FeaturesSection({ featuresRef, scrollY }) {
         <section
             ref={featuresRef}
             className="pt-24 relative overflow-hidden"
-            style={{ background: 'linear-gradient(to bottom, #000000, #101010)' }}
+            // style={{ background: 'linear-gradient(to bottom, #000000, #101010)' }}
         >
             {/* Parallax background elements */}
             <div

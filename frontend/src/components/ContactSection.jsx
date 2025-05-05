@@ -5,9 +5,9 @@ export default function ContactSection({ contactRef }) {
     <section
       ref={contactRef}
       className="py-24 relative overflow-hidden"
-      style={{
-        background: 'linear-gradient(to bottom, #000000, #050505)'
-      }}
+      // style={{
+      //   background: 'linear-gradient(to bottom, #000000, #050505)'
+      // }}
     >
       <div className="max-w-7xl mx-auto px-6">
         {/* Section header */}
