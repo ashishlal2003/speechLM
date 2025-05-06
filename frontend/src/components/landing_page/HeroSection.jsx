@@ -6,11 +6,11 @@ import {
 export default function HeroSection() {
     return (
         <header className="pt-40 pb-20 relative overflow-hidden ">
-            <div className="absolute inset-0 flex items-center justify-center opacity-10">
+            {/* <div className="absolute inset-0 flex items-center justify-center opacity-10">
                 <div className="w-[800px] h-[800px] border-[40px] border-orange-500 rounded-full animate-spin-slow"></div>
                 <div className="absolute w-[600px] h-[600px] border-[30px] border-green-600 rounded-full animate-spin-slow-reverse"></div>
                 <div className="absolute w-[400px] h-[400px] border-[20px] border-blue-500 rounded-full animate-spin-moderate"></div>
-            </div>
+            </div> */}
             <div className="container mx-auto px-4 flex flex-col items-center z-10 relative ">
                 <div className="text-center md:text-left md:pr-8 flex flex-col justify-center align-center">
                     <h1 className="text-4xl md:text-7xl lg:text-8xl font-bold leading-tight text-center">

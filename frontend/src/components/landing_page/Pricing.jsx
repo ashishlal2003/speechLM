@@ -4,17 +4,15 @@ function Pricing() {
     return (
         <section
             id="pricing"
-            className="py-16 md:py-24 bg-gradient-to-b from-indigo-50 to-orange-50"
+            className="py-20 md:py-28 bg-gradient-to-b from-indigo-50 to-orange-50"
         >
             <div className="container mx-auto px-4">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold">
-                        <span className="bg-gradient-to-r from-orange-500 via-green-500 to-blue-600 bg-clip-text text-transparent">
-                            Simple Pricing
-                        </span>
+                    <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-500 via-green-500 to-blue-600 text-transparent bg-clip-text">
+                        Choose Your Tvara Plan
                     </h2>
                     <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
-                        Choose the plan that works best for you and your needs.
+                        From individuals to enterprises, Tvara offers tailored plans to match your voice AI needs.
                     </p>
                 </div>
 
@@ -25,57 +23,57 @@ function Pricing() {
                             price: "Free",
                             features: [
                                 "Hindi & English support",
-                                "Basic voice commands",
-                                "Limited daily queries",
+                                "Essential voice commands",
+                                "50 queries/day",
                                 "Community support",
                             ],
-                            buttonText: "Start Free",
+                            buttonText: "Get Started",
                             highlighted: false,
                         },
                         {
-                            name: "Premium",
-                            price: "₹299/month",
+                            name: "Pro",
+                            price: "₹299",
                             features: [
                                 "8 Indian languages",
                                 "Advanced voice AI",
                                 "Unlimited queries",
                                 "Priority support",
-                                "No advertisements",
+                                "Ad-free experience",
                             ],
-                            buttonText: "Get Premium",
+                            buttonText: "Upgrade Now",
                             highlighted: true,
                         },
                         {
-                            name: "Business",
-                            price: "₹999/month",
+                            name: "Enterprise",
+                            price: "₹999",
                             features: [
                                 "All 22+ Indian languages",
                                 "Custom voice training",
-                                "API access",
-                                "Dedicated support",
-                                "Custom integration",
+                                "API & dashboard access",
+                                "Dedicated account manager",
+                                "Custom integrations",
                             ],
-                            buttonText: "Contact Sales",
+                            buttonText: "Talk to Sales",
                             highlighted: false,
                         },
                     ].map((plan, index) => (
                         <div
                             key={index}
-                            className={`rounded-xl p-6 ${plan.highlighted
-                                    ? "bg-gradient-to-b from-white to-green-50 shadow-lg border-2 border-green-100 transform scale-105"
-                                    : "bg-white shadow-md border border-gray-100"
+                            className={`rounded-xl p-6 transition-all duration-300 ${plan.highlighted
+                                ? "bg-gradient-to-b from-white to-green-50 shadow-lg border-2 border-green-100 scale-[1.03]"
+                                : "bg-white shadow-md border border-gray-100"
                                 }`}
                         >
-                            <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                            <h3 className="text-xl font-bold mb-2 text-gray-800">{plan.name}</h3>
                             <div className="mb-6">
-                                <span className="text-3xl font-bold">{plan.price}</span>
+                                <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
                                 {plan.price !== "Free" && (
                                     <span className="text-gray-500 text-sm"> /month</span>
                                 )}
                             </div>
                             <ul className="mb-8 space-y-3">
                                 {plan.features.map((feature, i) => (
-                                    <li key={i} className="flex items-center">
+                                    <li key={i} className="flex items-center text-gray-600">
                                         <svg
                                             className="w-5 h-5 text-green-500 mr-2"
                                             fill="none"
@@ -90,15 +88,15 @@ function Pricing() {
                                                 d="M5 13l4 4L19 7"
                                             />
                                         </svg>
-                                        <span className="text-gray-600">{feature}</span>
+                                        {feature}
                                     </li>
                                 ))}
                             </ul>
                             <button
-                                className={`w-full py-3 rounded-full ${plan.highlighted
-                                        ? "bg-gradient-to-r from-orange-500 to-green-500 text-white"
-                                        : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                                    } transition-colors font-medium`}
+                                className={`w-full py-3 rounded-full font-medium transition-colors ${plan.highlighted
+                                    ? "bg-gradient-to-r from-orange-500 to-green-500 text-white hover:opacity-90"
+                                    : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                                    }`}
                             >
                                 {plan.buttonText}
                             </button>

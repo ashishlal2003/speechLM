@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import {
     Mic,
     Menu,
-    X,
-    Hand,
+    X
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -14,15 +13,12 @@ export default function Navbar({ scrolled }) {
         <div className="container mx-auto px-4 relative z-50">
             <nav
                 className={`fixed left-1/2 transform -translate-x-1/2 transition-all duration-300 ${scrolled
-                    ? "top-4 w-11/12 md:w-10/12 lg:w-3/4 bg-white/95 shadow-lg rounded-xl backdrop-blur-sm"
-                    : "top-8 w-11/12 md:w-10/12 lg:w-3/4 bg-white/80 shadow-md rounded-xl"
+                    ? "top-4 w-11/12 md:w-10/12 lg:w-3/4 bg-white/95 shadow-lg rounded-4xl backdrop-blur-sm"
+                    : "top-8 w-11/12 md:w-10/12 lg:w-3/4 bg-white/80 shadow-md rounded-4xl"
                     }`}
             >
                 <div className="flex justify-between items-center px-6 py-4">
                     <div className="flex items-center space-x-2">
-                        <div className="h-10 w-10 bg-gradient-to-r from-orange-500 to-green-500 rounded-full flex items-center justify-center shadow-md">
-                            <Hand className="text-white h-6 w-6" />
-                        </div>
                         <span className="text-xl font-bold bg-gradient-to-r from-orange-500 via-green-500 to-blue-600 bg-clip-text text-transparent">
                             Tvara
                         </span>
@@ -56,7 +52,7 @@ export default function Navbar({ scrolled }) {
                     </div>
 
                     <Link to="/tvara">
-                        <button className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-green-500 text-white px-4 py-2 rounded-full hover:shadow-lg transition-all">
+                        <button className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-green-500 text-white px-4 py-2 rounded-xl hover:shadow-lg transition-all">
                             <span>Try Now</span>
                             <Mic className="h-4 w-4" />
                         </button>

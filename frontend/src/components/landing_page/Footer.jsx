@@ -1,12 +1,8 @@
-import {
-  Hand
-} from "lucide-react";
-
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white py-12">
+    <footer className="bg-gray-900 text-white py-12 px-12">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div>
             <h4 className="text-lg font-semibold mb-4">Product</h4>
             <ul className="space-y-2">
@@ -159,15 +155,14 @@ export default function Footer() {
 
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">
-            <div className="h-8 w-8 bg-gradient-to-r from-orange-500 to-green-500 rounded-full flex items-center justify-center">
-              <Hand className="text-white h-4 w-4" />
-            </div>
             <span className="text-lg font-bold">Tvara.AI</span>
           </div>
-          <p className="text-gray-400 text-sm">
-            © {new Date().getFullYear()} Tvara AI Technologies. All rights
-            reserved.
-          </p>
+          <div className="text-gray-400 text-sm">
+            <p>
+              © {new Date().getFullYear()} Tvara AI Technologies. All rights reserved.
+            </p>
+            <p className="text-center">Whitefield, Bangalore - 560048</p>
+          </div>
         </div>
       </div>
     </footer>
