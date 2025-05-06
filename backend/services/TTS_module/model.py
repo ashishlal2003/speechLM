@@ -21,19 +21,19 @@ class TTS_Engine:
         print(f"✅ TTS Model loaded successfully on {DEVICE}")
         
         reference_path = os.path.join(AUDIO_FOLDER, "reference_audio.wav")
-        if not os.path.exists(reference_path):
-            print("Downloading sample reference voice...")
-            url = "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav"
-            try:
-                response = requests.get(url, stream=True)
-                response.raise_for_status()
-                with open(reference_path, 'wb') as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                print("✅ Reference audio downloaded successfully")
-            except Exception as e:
-                print(f"❌ Failed to download reference audio: {e}")
-                raise RuntimeError("Reference audio download failed.")
+        # if not os.path.exists(reference_path):
+        #     print("Downloading sample reference voice...")
+        #     url = "https://raw.githubusercontent.com/coqui-ai/TTS/dev/tests/data/ljspeech/wavs/LJ001-0001.wav"
+        #     try:
+        #         response = requests.get(url, stream=True)
+        #         response.raise_for_status()
+        #         with open(reference_path, 'wb') as f:
+        #             for chunk in response.iter_content(chunk_size=8192):
+        #                 f.write(chunk)
+        #         print("✅ Reference audio downloaded successfully")
+        #     except Exception as e:
+        #         print(f"❌ Failed to download reference audio: {e}")
+        #         raise RuntimeError("Reference audio download failed.")
 
         self.default_reference = reference_path
 
