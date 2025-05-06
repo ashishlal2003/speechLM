@@ -1,105 +1,145 @@
-import React from 'react'
-import Navbar from '../components/Navbar'
-import HeroSection from '../components/HeroSection'
-import Footer from '../components/Footer'
-import ContactSection from '../components/ContactSection'
-import FeaturesSection from '../components/feature-section/FeaturesSection'
-import TestimonialsSection from '../components/testimonial-section/TestimonialsSection'
-import PricingSection from '../components/pricing-plan/PricingSection'
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
+import Navbar from "../components/landing_page/Navbar";
+import HeroSection from "../components/landing_page/HeroSection";
+import Features from "../components/landing_page/Features";
+import HIW from "../components/landing_page/HIW";
+import Pricing from "../components/landing_page/Pricing";
+import CTA from "../components/landing_page/CTA";
+import Footer from "../components/landing_page/Footer";
+import Testinomials from "../components/landing_page/Testinomials";
 
-export default function LandingPage() {
-  // Loading state
-  const [isLoaded, setIsLoaded] = useState(false);
-  // Scroll position state
-  const [scrollY, setScrollY] = useState(0);
-  
-  // Refs for scrolling to sections
-  const heroRef = useRef(null);
-  const featuresRef = useRef(null);
-  const testimonialsRef = useRef(null);
-  const pricingRef = useRef(null);
-  const contactRef = useRef(null);
+export default function Temp2() {
+  const [isListening, setIsListening] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const waveRef = useRef(null);
 
-  // Function to scroll to a ref
-  const scrollToRef = (ref) => {
-    if (ref && ref.current) {
-      window.scrollTo({
-        top: ref.current.offsetTop - 100, // Offset to account for navbar
-        behavior: 'smooth'
-      });
-    }
-  };
 
-  // Handle scroll position updates
+  // Handle scroll effect for navbar
   useEffect(() => {
     const handleScroll = () => {
-      setScrollY(window.scrollY);
+      setScrolled(window.scrollY > 50);
     };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Simulate loading delay and then set isLoaded to true
+  // Simulated wave animation
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoaded(true);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, []);
+    if (isListening && waveRef.current) {
+      const interval = setInterval(() => {
+        const bars = waveRef.current.querySelectorAll(".wave-bar");
+        bars.forEach((bar) => {
+          const height = Math.random() * 60 + 20;
+          bar.style.height = `${height}px`;
+        });
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  }, [isListening]);
 
   return (
-          <div className="bg-black text-white min-h-screen">
-            <Navbar 
-              scrollToRef={scrollToRef}
-              heroRef={heroRef}
-              featuresRef={featuresRef}
-              testimonialsRef={testimonialsRef}
-              pricingRef={pricingRef}
-              contactRef={contactRef}
-              isLoaded={isLoaded}
-            />
-            
-            <main>
-              <HeroSection 
-                heroRef={heroRef}
-                scrollToRef={scrollToRef}
-                featuresRef={featuresRef}
-                isLoaded={isLoaded}
-                scrollY={scrollY}
-              />
-              
-              <FeaturesSection 
-                featuresRef={featuresRef}
-                scrollY={scrollY}
-              />
-              
-              <TestimonialsSection 
-                testimonialsRef={testimonialsRef}
-                scrollY={scrollY}
-              />
-              
-              <PricingSection 
-                pricingRef={pricingRef}
-                scrollY={scrollY}
-              />
-              
-              <ContactSection 
-                contactRef={contactRef}
-              />
-            </main>
-            
-            <Footer 
-              scrollToRef={scrollToRef}
-              heroRef={heroRef}
-              featuresRef={featuresRef}
-              testimonialsRef={testimonialsRef}
-              pricingRef={pricingRef}
-              contactRef={contactRef}
-            />
-          </div>
-       
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-orange-50 text-gray-800 font-sans">
+      {/* Floating Navbar */}
+      <Navbar scrolled={scrolled} />
+
+      {/* Hero Section */}
+      <HeroSection />
+
+
+      {/* Features Section */}
+      <Features />
+
+      {/* How It Works Section */}
+      <HIW />
+
+      {/* Testimonials Section */}
+      <Testinomials />
+
+      {/* Pricing Section */}
+      <Pricing />
+
+
+      {/* CTA Section */}
+      <CTA />
+
+
+      {/* Footer */}
+      <Footer />
+
+
+      {/* Custom CSS */}
+      <style jsx global>{`
+        @keyframes spin-slow {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        @keyframes spin-slow-reverse {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(-360deg); }
+        }
+
+        @keyframes spin-moderate {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(180deg); }
+        }
+
+        @keyframes spin-very-slow {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        @keyframes spin-very-slow-reverse {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(-360deg); }
+        }
+
+        @keyframes ripple {
+          0% {
+            transform: scale(0.5);
+            opacity: 0.5;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 0;
+          }
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: translate(-50%, -50%) scale(1.5);
+            opacity: 0.5;
+          }
+        }
+
+        .animate-spin-slow {
+          animation: spin-slow 20s linear infinite;
+        }
+
+        .animate-spin-slow-reverse {
+          animation: spin-slow-reverse 15s linear infinite;
+        }
+
+        .animate-spin-moderate {
+          animation: spin-moderate 12s linear infinite alternate;
+        }
+
+        .animate-spin-very-slow {
+          animation: spin-very-slow 30s linear infinite;
+        }
+
+        .animate-spin-very-slow-reverse {
+          animation: spin-very-slow-reverse 25s linear infinite;
+        }
+
+        .animate-ripple {
+          animation: ripple 2s linear infinite;
+        }
+      `}</style>
+    </div>
   );
 }

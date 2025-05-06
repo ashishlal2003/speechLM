@@ -7,7 +7,7 @@ function App() {
 
     <BrowserRouter>
       <Routes>
-        <Route  path='/' element={<LandingPage />}/>
+        <Route path='/' element={<LandingPage/>}/>
         <Route path='/tvara' element={<VoiceRecorderApp />}/>
       </Routes>
     </BrowserRouter>
