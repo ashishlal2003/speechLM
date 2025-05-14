@@ -16,7 +16,11 @@ class TTS_Engine:
             self.tts = TTS(model_name="tts_models/en/vits/vits-ljspeech").to(DEVICE)
             print("HERE HEHE")
         except:
-            self.tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2").to(DEVICE)
+            # self.tts = TTS(model_name="tts_models/en/ljspeech/glow-tts").to(DEVICE)
+            # self.tts = TTS(model_name="tts_models/en/vctk/vits").to(DEVICE)
+            self.tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC").to(DEVICE)
+            #self.tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2").to(DEVICE)
+
             print("HERE HEHEfgdfgdf")
         print(f"✅ TTS Model loaded successfully on {DEVICE}")
         
