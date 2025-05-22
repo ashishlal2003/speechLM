@@ -1,4 +1,4 @@
-from utils import float32_to_int16, pcm_to_wav
+from utils.audio_conversion import float32_to_int16, pcm_to_wav
 import os
 from config import AUDIO_FOLDER
 from services.LLM.utils import ai_response
