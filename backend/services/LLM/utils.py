@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from services.DB_Actions.user_history import UserHistory
+from daos.user_history import UserHistory
 
 history_db = UserHistory()
 
