@@ -3,7 +3,7 @@ import { Quote } from 'lucide-react'
 
 function Testimonials() {
     return (
-        <section className="py-20 px-6 bg-gradient-to-b from-white to-orange-50">
+        <section  id="testimonials" className="py-20 px-6 bg-gradient-to-b from-white to-orange-50">
             <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-orange-500 to-green-600 text-transparent bg-clip-text">

@@ -6,7 +6,7 @@ import HIW from "../components/landing_page/HIW";
 import Pricing from "../components/landing_page/Pricing";
 import CTA from "../components/landing_page/CTA";
 import Footer from "../components/landing_page/Footer";
-import Testinomials from "../components/landing_page/Testinomials";
+import Testimonials from "../components/landing_page/Testinomials";
 
 export default function Temp2() {
   const [isListening, setIsListening] = useState(false);
@@ -53,7 +53,7 @@ export default function Temp2() {
       <HIW />
 
       {/* Testimonials Section */}
-      <Testinomials />
+      <Testimonials />
 
       {/* Pricing Section */}
       <Pricing />
