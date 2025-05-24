@@ -38,7 +38,6 @@ function App() {
   const recordingProcessorRef = useRef(null);
   const recordingAudioContextRef = useRef(null);
 
-
   useEffect(() => {
     // AudioContext for playback
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();

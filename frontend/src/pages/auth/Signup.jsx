@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
 import Button from "../../components/elements/Button";
 import Divider from "../../components/elements/Divider";
@@ -80,15 +81,13 @@ const Signup = () => {
         <div className="text-center">
           <p className="text-slate-600">
             Already have an account?{' '}
-            <a href="/log-in" className="text-green-500 hover:text-green-600 font-semibold transition-colors">
+            <Link to="/log-in" className="text-green-500 hover:text-green-600 font-semibold transition-colors">
               Sign in
-            </a>
+            </Link>
           </p>
         </div>
         <Divider />
-
         <GoogleIcon  onClick={handleGoogleSignup} />
-
       </div>
     </AuthLayout>
   );

@@ -13,8 +13,6 @@ const withAuthModal = (WrappedComponent) => {
             return () => clearTimeout(timer);
         }, []);
 
-
-
         const handleAuthChoice = (choice) => {
 
             // Add exit animation

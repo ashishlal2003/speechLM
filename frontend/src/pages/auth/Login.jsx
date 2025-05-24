@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
 import Button from "../../components/elements/Button";
 import Divider from "../../components/elements/Divider";
@@ -66,9 +67,9 @@ const Login = () => {
         <div className="text-center">
           <p className="text-slate-600">
             Don't have an account?{' '}
-            <a href="/create-account" className="text-orange-500 hover:text-orange-600 font-semibold transition-colors">
+            <Link to="/create-account" className="text-orange-500 hover:text-orange-600 font-semibold transition-colors">
               Sign up
-            </a>
+            </Link>
           </p>
         </div>
         <Divider />
