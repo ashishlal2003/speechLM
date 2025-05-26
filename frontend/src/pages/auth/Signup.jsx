@@ -7,8 +7,12 @@ import GoogleIcon from "../../components/elements/GoogleIcon";
 import { useForm } from "../../hooks/useForm";
 import { createValidationRules } from "../../validation-rules/validationRules"
 import axios from 'axios'
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
+
+  const navigate = useNavigate();
+
   const { formData, errors, isLoading, handleInputChange, handleSubmit } = useForm(
     { name: '', email: '', password: '', confirmPassword: '' },
     createValidationRules
@@ -23,7 +27,9 @@ const Signup = () => {
 
     try {      
       const response = await axios.post('http://localhost:8000/register', payload);
-      console.log('Signup submitted:', response.data);
+      console.log(response);
+      
+      navigate('/login');
     } catch (error) {
       console.error('Signup error:', error.response?.data || error.message);
     }

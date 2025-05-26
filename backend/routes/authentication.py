@@ -22,6 +22,8 @@ class TokenData(BaseModel):
 
 @router.post("/register")
 def register(req: RegisterRequest):
+    if user.get_user(req.email):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
     user.create_user(req.username, req.email, req.password)
     return {"message": "User registered successfully"}
 
@@ -34,6 +36,8 @@ def login(req: LoginRequest):
     
     hashed = curr["password"].encode()
     match = bcrypt.checkpw(req.password.encode(), hashed)
+
+    print("Math:", match)
 
     if not match:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")

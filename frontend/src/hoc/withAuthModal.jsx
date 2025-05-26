@@ -26,8 +26,6 @@ const withAuthModal = (WrappedComponent) => {
 
         const check_is_authenticated = async () => {
             const token = localStorage.getItem('token');
-            console.log(token);
-
 
             if (token) {
                 const isAuthenticated = await axios.post('http://localhost:8000/is_authenticated', { token: token });
