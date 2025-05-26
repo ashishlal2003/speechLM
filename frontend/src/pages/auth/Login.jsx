@@ -6,17 +6,33 @@ import FormInput from "../../components/elements/FormInputs";
 import GoogleIcon from "../../components/elements/GoogleIcon";
 import { useForm } from "../../hooks/useForm";
 import {loginValidationRules} from "../../validation-rules/validationRules"
+import axios from 'axios'
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+
+  const navigate = useNavigate();
+
   const { formData, errors, isLoading, handleInputChange, handleSubmit } = useForm(
     { email: '', password: '' },
     loginValidationRules
   );
 
   const onSubmit = async (data) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('Login submitted:', data);
+    const payload = {
+      email: data.email,
+      password: data.password,
+    };
+    
+    try {      
+      const response = await axios.post('http://localhost:8000/login', payload);      
+
+      localStorage.setItem('token', response.data.access_token);
+
+      navigate('/tvara');
+    } catch (error) {
+      alert("Incorrect email or password");
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -67,7 +83,7 @@ const Login = () => {
         <div className="text-center">
           <p className="text-slate-600">
             Don't have an account?{' '}
-            <Link to="/create-account" className="text-orange-500 hover:text-orange-600 font-semibold transition-colors">
+            <Link to="/register" className="text-orange-500 hover:text-orange-600 font-semibold transition-colors">
               Sign up
             </Link>
           </p>

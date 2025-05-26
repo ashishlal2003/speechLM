@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { X } from 'lucide-react';
+import axios from 'axios'
 
 const withAuthModal = (WrappedComponent) => {
     return function AuthenticatedComponent(props) {
@@ -9,9 +9,38 @@ const withAuthModal = (WrappedComponent) => {
         const navigate = useNavigate();
 
         useEffect(() => {
-            const timer = setTimeout(() => setIsVisible(true), 50);
-            return () => clearTimeout(timer);
+            const checkAuth = async () => {
+                const isAuth = await check_is_authenticated();
+
+                if (isAuth) {
+                    setShowModal(false);
+                } else {
+                    const timer = setTimeout(() => setIsVisible(true), 50);
+                    return () => clearTimeout(timer);
+                }
+            };
+
+            checkAuth();
         }, []);
+
+
+        const check_is_authenticated = async () => {
+            const token = localStorage.getItem('token');
+            console.log(token);
+
+
+            if (token) {
+                const isAuthenticated = await axios.post('http://localhost:8000/is_authenticated', { token: token });
+
+                if (isAuthenticated.data.is_authenticated) {
+                    return true;
+                }
+
+                return false;
+            }
+
+            return false;
+        }
 
         const handleAuthChoice = (choice) => {
 
@@ -25,10 +54,10 @@ const withAuthModal = (WrappedComponent) => {
 
             switch (choice) {
                 case 'login':
-                    navigate("/log-in")
+                    navigate("/login")
                     break;
                 case 'signup':
-                    navigate("/create-account")
+                    navigate("/register")
                     break;
                 case 'guest':
                     break;
