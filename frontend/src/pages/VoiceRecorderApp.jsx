@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, MeshDistortMaterial, Sphere } from "@react-three/drei";
-import "../index.css"; // Assuming this contains styles for .App, .overlay, .speak-button
+import "../index.css"; 
+import Button from "../components/elements/Button";
+import { useNavigate } from "react-router-dom";
 
 // Modified AnimatedSphere to take amplitude as a prop
 function AnimatedSphere({ amplitude }) { // [[3]] (concept of reacting to audio)
@@ -38,6 +40,7 @@ function App() {
   const recordingProcessorRef = useRef(null);
   const recordingAudioContextRef = useRef(null);
 
+  const navigate = useNavigate();
 
   useEffect(() => {
     // AudioContext for playback
@@ -60,11 +63,11 @@ function App() {
       } else {
         const audioData = event.data; // event.data is ArrayBuffer
         try {
-            const audioBuffer = await audioContextRef.current.decodeAudioData(audioData.slice(0)); // Use slice(0) to create a copy if needed
-            audioQueueRef.current.push(audioBuffer);
-            if (!isPlayingRef.current) playAudioQueue();
+          const audioBuffer = await audioContextRef.current.decodeAudioData(audioData.slice(0)); // Use slice(0) to create a copy if needed
+          audioQueueRef.current.push(audioBuffer);
+          if (!isPlayingRef.current) playAudioQueue();
         } catch (e) {
-            console.error("Error decoding audio data:", e);
+          console.error("Error decoding audio data:", e);
         }
       }
     };
@@ -110,12 +113,12 @@ function App() {
     updateAmplitudeCallback();
     sourceNode.start();
     sourceNode.onended = () => {
-        // Check if it was the last item
-        if (audioQueueRef.current.length === 0) {
-            isPlayingRef.current = false;
-            setAmplitude(0); // Reset amplitude when playback ends
-        }
-        playAudioQueue(); // Continue with the next item or set isPlaying to false
+      // Check if it was the last item
+      if (audioQueueRef.current.length === 0) {
+        isPlayingRef.current = false;
+        setAmplitude(0); // Reset amplitude when playback ends
+      }
+      playAudioQueue(); // Continue with the next item or set isPlaying to false
     };
   };
 
@@ -132,13 +135,13 @@ function App() {
       recordingAudioContextRef.current.close();
       recordingAudioContextRef.current = null;
     }
-     console.log("[VAD] Recording resources stopped and cleaned up.");
+    console.log("[VAD] Recording resources stopped and cleaned up.");
   };
 
   const startRecording = async () => { // [[4]] [[5]] General concept of audio recording in React
     if (recordingStreamRef.current) {
-        console.log("[VAD] Recording already in progress or not cleaned up. Stopping previous.");
-        stopRecordingResources(); // Ensure previous resources are stopped
+      console.log("[VAD] Recording already in progress or not cleaned up. Stopping previous.");
+      stopRecordingResources(); // Ensure previous resources are stopped
     }
     setAmplitude(0); // Reset amplitude before starting new recording
 
@@ -211,16 +214,27 @@ function App() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/');
+  }
+
   return (
     <div className="App">
+      <Button
+        variant="primary"
+        onClick={handleLogout}
+      >
+        Logout
+      </Button>
       <Canvas camera={{ position: [0, 0, 10], fov: 40 }} style={{ height: '100vh', width: '100vw' }}>
-        <ambientLight intensity={0.5}/> {/* Adjusted intensity slightly */}
-        <pointLight position={[10,10,10]} intensity={1}/>
+        <ambientLight intensity={0.5} /> {/* Adjusted intensity slightly */}
+        <pointLight position={[10, 10, 10]} intensity={1} />
         {/* Removed other lights from original for simplicity, can be added back */}
         {/* <color attach="background" args={['#050520']} /> */}
-        
+
         <AnimatedSphere amplitude={amplitude} />
-        
+
         <OrbitControls enableZoom={true} /> {/* Kept OrbitControls from new snippet, enabled zoom */}
       </Canvas>
 

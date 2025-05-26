@@ -23,8 +23,8 @@ class User:
         }
         self.collection.insert_one(user)
 
-    def get_user(self, username):
-        user = self.collection.find_one({"username": username})
+    def get_user(self, email):
+        user = self.collection.find_one({"email": email})
         return user
     
     def get_user_by_email(self, email):

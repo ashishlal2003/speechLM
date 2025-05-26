@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import authentication, profile, processing
+from routes import authentication, profile
 app = FastAPI()
 
-app.include_router(processing.router, tags=["Processing"])
+# app.include_router(processing.router, tags=["Processing"])
 app.include_router(authentication.router, tags=["Authentication"])
 app.include_router(profile.router, tags=["Profile"])
 
