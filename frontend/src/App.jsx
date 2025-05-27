@@ -14,8 +14,8 @@ function App() {
       <Routes>
         <Route path='/' element={<LandingPage/>}/>
         <Route path='/tvara' element={<AuthenticatedVoiceRecorderAppRoute/>}/>
-        <Route path='/log-in' element={<Login/>}/>
-        <Route path='/create-account' element={<Signup/>}/>
+        <Route path='/login' element={<Login/>}/>
+        <Route path='/register' element={<Signup/>}/>
       </Routes>
     </BrowserRouter>
 

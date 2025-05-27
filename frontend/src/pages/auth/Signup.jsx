@@ -5,18 +5,34 @@ import Divider from "../../components/elements/Divider";
 import FormInput from "../../components/elements/FormInputs";
 import GoogleIcon from "../../components/elements/GoogleIcon";
 import { useForm } from "../../hooks/useForm";
-import {createValidationRules} from "../../validation-rules/validationRules"
+import { createValidationRules } from "../../validation-rules/validationRules"
+import axios from 'axios'
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
+
+  const navigate = useNavigate();
+
   const { formData, errors, isLoading, handleInputChange, handleSubmit } = useForm(
     { name: '', email: '', password: '', confirmPassword: '' },
     createValidationRules
   );
 
   const onSubmit = async (data) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('Signup submitted:', data);
+    const payload = {
+      username: data.name,
+      email: data.email,
+      password: data.password,
+    };
+
+    try {      
+      const response = await axios.post('http://localhost:8000/register', payload);
+      console.log(response);
+      
+      navigate('/login');
+    } catch (error) {
+      console.error('Signup error:', error.response?.data || error.message);
+    }
   };
 
   const handleGoogleSignup = () => {
@@ -81,13 +97,13 @@ const Signup = () => {
         <div className="text-center">
           <p className="text-slate-600">
             Already have an account?{' '}
-            <Link to="/log-in" className="text-green-500 hover:text-green-600 font-semibold transition-colors">
+            <Link to="/login" className="text-green-500 hover:text-green-600 font-semibold transition-colors">
               Sign in
             </Link>
           </p>
         </div>
         <Divider />
-        <GoogleIcon  onClick={handleGoogleSignup} />
+        <GoogleIcon onClick={handleGoogleSignup} />
       </div>
     </AuthLayout>
   );
