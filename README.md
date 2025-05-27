@@ -70,6 +70,12 @@ sudo apt install -y nodejs
 > npm -v
 > ```
 
+### 2. Install Requirements and Run the Frontend
+```bash
+npm install
+npm run dev
+```
+
 ---
 
 ## ✅ Final Checklist
