@@ -1,5 +1,14 @@
 body {
   font-family: 'Merriweather', sans-serif;
+  /* Hide scrollbars for body */
+  overflow: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+/* Hide scrollbar for WebKit browsers (Chrome, Safari, Edge) */
+body::-webkit-scrollbar {
+  display: none;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -12,10 +21,9 @@ p {
   font-weight: 400; /* Regular */
 }
 
-
 .App {
   position: relative;
-  width: 100vw;
+  /* width: 100%; */
   height: 100vh;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -64,6 +72,42 @@ p {
   box-shadow: 0 0 15px rgba(0, 170, 255, 0.4);
 }
 
-button{
+button {
   cursor: pointer;
+}
+
+/* Global scrollbar hiding for all elements */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+/* Hide scrollbar for WebKit browsers (Chrome, Safari, Edge) for all elements */
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Alternative: If you want to keep functionality but hide scrollbars only */
+/* Uncomment these rules and comment out the above if you want scrolling to work but scrollbars to be invisible */
+
+
+html {
+  overflow: -moz-scrollbars-none;  
+  -ms-overflow-style: none;  
+  scrollbar-width: none;  
+}
+
+html::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
 }
