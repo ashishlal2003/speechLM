@@ -1,14 +1,11 @@
 import google.generativeai as genai
-from daos.user_history import UserHistory
-
-history_db = UserHistory()
 
 def setup_genai(api_key):
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-1.5-flash')
     return model
 
-def ai_response(model, user_input, user_id="default_user"):
+def ai_response(model, user_input, history_db, user_id):
     past_messages = history_db.get_conversation(user_id)
     history_prompt = ""
 

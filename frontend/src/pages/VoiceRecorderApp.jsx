@@ -4,6 +4,7 @@ import { OrbitControls, MeshDistortMaterial, Sphere } from "@react-three/drei";
 import "../index.css"; 
 import Button from "../components/elements/Button";
 import { useNavigate } from "react-router-dom";
+import {jwtDecode} from 'jwt-decode';
 
 // Modified AnimatedSphere to take amplitude as a prop
 function AnimatedSphere({ amplitude }) { // [[3]] (concept of reacting to audio)
@@ -45,6 +46,11 @@ function App() {
   useEffect(() => {
     // AudioContext for playback
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    const token = localStorage.getItem('token');
+    const userId = token ? jwtDecode(token).sub : 'default_user';
+
+    console.log("userId", userId);
+    
 
     const ws = new WebSocket("ws://localhost:8000/ws/processing");
     setSocket(ws);
