@@ -1,24 +1,14 @@
 from fastapi import HTTPException, status, APIRouter
-from daos.user import User
 import bcrypt
 from utils.jwt_auth import create_access_token, verify_jwt
-from pydantic import BaseModel
+from daos.user import User
+from schemas.register_schema import RegisterRequest
+from schemas.login_schema import LoginRequest
+from schemas.token_schema import TokenData
 
 router = APIRouter()
 
 user = User()
-
-class RegisterRequest(BaseModel):
-    username: str
-    email: str
-    password: str
-
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-class TokenData(BaseModel):
-    token: str
 
 @router.post("/register")
 def register(req: RegisterRequest):
