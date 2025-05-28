@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, MeshDistortMaterial, Sphere } from "@react-three/drei";
-import "../index.css"; 
+import "../index.css";
 import Button from "../components/elements/Button";
 import { useNavigate } from "react-router-dom";
 import {jwtDecode} from 'jwt-decode';
@@ -26,7 +26,7 @@ function AnimatedSphere({ amplitude }) { // [[3]] (concept of reacting to audio)
   );
 }
 
-function App() {
+function App(props) {
   const [socket, setSocket] = useState(null);
   const [amplitude, setAmplitude] = useState(0);
   // mediaRecorderRef is not used in the VAD logic, but kept if needed for other types of recording
@@ -220,20 +220,20 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
-  }
+  // const handleLogout = () => {
+  //   localStorage.removeItem('token');
+  //   navigate('/');
+  // }
 
   return (
-    <div className="App">
-      <Button
+  <div className="App">
+      {/* <Button
         variant="primary"
         onClick={handleLogout}
       >
         Logout
-      </Button>
-      <Canvas camera={{ position: [0, 0, 10], fov: 40 }} style={{ height: '100vh', width: '100vw' }}>
+      </Button> */}
+      <Canvas camera={{ position: [0, 0, 10], fov: 40 }} style={{ height: '100vh', width: '100%' }}>
         <ambientLight intensity={0.5} /> {/* Adjusted intensity slightly */}
         <pointLight position={[10, 10, 10]} intensity={1} />
         {/* Removed other lights from original for simplicity, can be added back */}
