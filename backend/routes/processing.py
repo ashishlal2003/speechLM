@@ -6,6 +6,7 @@ from services.LLM.utils import setup_genai
 from config import AUDIO_FOLDER
 import os
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -23,6 +24,13 @@ async def process(websocket: WebSocket):
     try:
         while True:
             try:
+
+                ## FIX here
+                data = await websocket.receive_text()
+                message = json.loads(data)
+                if message.get("type") == "logout":
+                    print("[INFO] Logout message received. Closing connection.")
+                    break
                 await speech_ai_pipeline(recognizer, llm_model, tts_engine, websocket)
             except WebSocketDisconnect:
                 print("[INFO] Client disconnected")
