@@ -4,40 +4,39 @@ from config import AUDIO_FOLDER
 from services.LLM.utils import ai_response
 import uuid
 import json
+from services.UserHistory.factory import get_user_history_plugin
 
 async def speech_ai_pipeline(recognizer, llm_model, tts_engine, websocket):
     try:
+        auth_token = websocket.headers.get("authorization")
+        user_id = websocket.headers.get("x-user-id", "default_user")
+
+        history_db = get_user_history_plugin(auth_token)
+
         binary_audio = await websocket.receive_bytes()
-        print(f"[DEBUG] Received audio data of size: {len(binary_audio)} bytes")
 
         wav_file = pcm_to_wav(
             pcm_data=binary_audio, sample_rate=44100
         )
 
         input_path = os.path.join(AUDIO_FOLDER, f"stream_input_{uuid.uuid4()}.wav")
-        print(f"[DEBUG] Saving audio to: {input_path}")
 
         with open(input_path, "wb") as f:
             f.write(wav_file)
 
         transcription = recognizer.transcribe(input_path, language="en")
-        print(f"[DEBUG] Transcription result: {transcription}")
 
         if websocket.client_state.name == "CONNECTED":
             await websocket.send_text(json.dumps({"type": "transcription", "text": transcription}))
-            print("[DEBUG] Transcription sent to client")
 
         os.remove(input_path)
-        print(f"[DEBUG] Temporary file deleted: {input_path}")
 
     except Exception as e:
-        print(f"[ERROR] Error in STT WebSocket: {e}")
         if websocket.client_state.name == "CONNECTED":
             await websocket.send_text(json.dumps({"type": "error", "message": str(e)}))
         return
 
-    response = ai_response(llm_model, transcription)
-    print(f"[DEBUG] Response to synthesize: {response}")
+    response = ai_response(llm_model, transcription, history_db, user_id)
 
     try:
         sentences = tts_engine._split_into_sentences(response)

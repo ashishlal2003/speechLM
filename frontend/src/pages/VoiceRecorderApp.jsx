@@ -4,9 +4,11 @@ import { OrbitControls, MeshDistortMaterial, Sphere } from "@react-three/drei";
 import "../index.css";
 import Button from "../components/elements/Button";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 // Modified AnimatedSphere to take amplitude as a prop
-function AnimatedSphere({ amplitude }) { // [[3]] (concept of reacting to audio)
+function AnimatedSphere({ amplitude }) {
+  // [[3]] (concept of reacting to audio)
   const meshRef = useRef();
 
   useFrame(() => {
@@ -19,8 +21,11 @@ function AnimatedSphere({ amplitude }) { // [[3]] (concept of reacting to audio)
 
   return (
     <Sphere args={[1.5, 128, 128]} ref={meshRef}>
-      <MeshDistortMaterial color="#eb7067
-      " speed={2} />
+      <MeshDistortMaterial
+        color="#eb7067
+      "
+        speed={2}
+      />
     </Sphere>
   );
 }
@@ -44,7 +49,12 @@ function App(props) {
 
   useEffect(() => {
     // AudioContext for playback
-    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    audioContextRef.current = new (window.AudioContext ||
+      window.webkitAudioContext)();
+    const token = localStorage.getItem("token");
+    const userId = token ? jwtDecode(token).sub : "default_user";
+
+    console.log("userId", userId);
 
     const ws = new WebSocket("ws://localhost:8000/ws/processing");
     setSocket(ws);
@@ -63,7 +73,9 @@ function App(props) {
       } else {
         const audioData = event.data; // event.data is ArrayBuffer
         try {
-          const audioBuffer = await audioContextRef.current.decodeAudioData(audioData.slice(0)); // Use slice(0) to create a copy if needed
+          const audioBuffer = await audioContextRef.current.decodeAudioData(
+            audioData.slice(0)
+          ); // Use slice(0) to create a copy if needed
           audioQueueRef.current.push(audioBuffer);
           if (!isPlayingRef.current) playAudioQueue();
         } catch (e) {
@@ -74,7 +86,10 @@ function App(props) {
 
     return () => {
       ws.close();
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      if (
+        audioContextRef.current &&
+        audioContextRef.current.state !== "closed"
+      ) {
         audioContextRef.current.close();
       }
       // Ensure recording resources are cleaned up on unmount
@@ -105,7 +120,8 @@ function App(props) {
         return;
       }
       analyserNode.getByteTimeDomainData(dataArray);
-      const norm = dataArray.reduce((a, b) => a + Math.abs(b - 128), 0) / dataArray.length;
+      const norm =
+        dataArray.reduce((a, b) => a + Math.abs(b - 128), 0) / dataArray.length;
       setAmplitude(norm / 128);
       requestAnimationFrame(updateAmplitudeCallback);
     };
@@ -131,16 +147,22 @@ function App(props) {
       recordingStreamRef.current.getTracks().forEach((track) => track.stop());
       recordingStreamRef.current = null;
     }
-    if (recordingAudioContextRef.current && recordingAudioContextRef.current.state !== 'closed') {
+    if (
+      recordingAudioContextRef.current &&
+      recordingAudioContextRef.current.state !== "closed"
+    ) {
       recordingAudioContextRef.current.close();
       recordingAudioContextRef.current = null;
     }
     console.log("[VAD] Recording resources stopped and cleaned up.");
   };
 
-  const startRecording = async () => { // [[4]] [[5]] General concept of audio recording in React
+  const startRecording = async () => {
+    // [[4]] [[5]] General concept of audio recording in React
     if (recordingStreamRef.current) {
-      console.log("[VAD] Recording already in progress or not cleaned up. Stopping previous.");
+      console.log(
+        "[VAD] Recording already in progress or not cleaned up. Stopping previous."
+      );
       stopRecordingResources(); // Ensure previous resources are stopped
     }
     setAmplitude(0); // Reset amplitude before starting new recording
@@ -149,7 +171,8 @@ function App(props) {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       recordingStreamRef.current = stream; // Store stream
 
-      recordingAudioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      recordingAudioContextRef.current = new (window.AudioContext ||
+        window.webkitAudioContext)();
       const audioCtx = recordingAudioContextRef.current;
 
       const source = audioCtx.createMediaStreamSource(stream);
@@ -171,7 +194,9 @@ function App(props) {
         if (!recordingStreamRef.current) return; // Stop processing if stream is stopped
 
         const input = event.inputBuffer.getChannelData(0);
-        const rms = Math.sqrt(input.reduce((acc, x) => acc + x * x, 0) / input.length);
+        const rms = Math.sqrt(
+          input.reduce((acc, x) => acc + x * x, 0) / input.length
+        );
         setAmplitude(rms); // Update amplitude for sphere animation
 
         if (rms > silenceThreshold) {
@@ -195,7 +220,10 @@ function App(props) {
               const pcmFloat = new Float32Array(audioBuffer);
               const pcmInt16 = new Int16Array(pcmFloat.length);
               for (let i = 0; i < pcmFloat.length; i++) {
-                pcmInt16[i] = Math.max(-32768, Math.min(32767, pcmFloat[i] * 32767));
+                pcmInt16[i] = Math.max(
+                  -32768,
+                  Math.min(32767, pcmFloat[i] * 32767)
+                );
               }
 
               if (socket && socket.readyState === WebSocket.OPEN) {
@@ -214,19 +242,55 @@ function App(props) {
     }
   };
 
-  // const handleLogout = () => {
-  //   localStorage.removeItem('token');
-  //   navigate('/');
-  // }
+  const handleLogout = async () => {
+    // Check if the WebSocket exists and is open
+    if (socket) {
+      if (socket.readyState === WebSocket.OPEN) {
+        console.log(
+          "[Logout] Sending logout message and closing WebSocket connection..."
+        );
+
+        // Send a custom logout message to the server
+        socket.send(JSON.stringify({ type: "logout" }));
+
+        // Close the WebSocket connection with a normal closure code
+        socket.close(1000, "User logout");
+      } else if (socket.readyState === WebSocket.CLOSING) {
+        console.log("[Logout] WebSocket is already closing...");
+      } else if (socket.readyState === WebSocket.CLOSED) {
+        console.log("[Logout] WebSocket is already closed.");
+      }
+
+      // Wait for the WebSocket to fully close
+      await new Promise((resolve) => {
+        const checkClosed = () => {
+          if (socket.readyState === WebSocket.CLOSED) {
+            console.log("[Logout] WebSocket closed successfully");
+            resolve();
+          } else {
+            setTimeout(checkClosed, 10);
+          }
+        };
+        checkClosed();
+      });
+    }
+
+    // Clean up any recording resources
+    stopRecordingResources();
+
+    // Clear authentication token from local storage
+    localStorage.removeItem("token");
+
+    // Navigate the user to the login or home page
+    navigate("/");
+  };
 
   return (
-  <div className="App">
-      {/* <Button
-        variant="primary"
-        onClick={handleLogout}
-      >
+    <div className="App">
+      hrhjg
+      <Button variant="primary" onClick={handleLogout}>
         Logout
-      </Button> */}
+      </Button>
       <Canvas camera={{ position: [0, 0, 10], fov: 40 }} style={{ height: '100vh', width: '100%' }}>
         <ambientLight intensity={0.5} /> {/* Adjusted intensity slightly */}
         <pointLight position={[10, 10, 10]} intensity={1} />
