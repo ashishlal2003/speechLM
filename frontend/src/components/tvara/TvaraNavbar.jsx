@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
 import BrandLogo from '../elements/BrandLogo';
-import ProfileDetails from '../profile/ProfileDetails';
-import axios from 'axios';
+import ProfileDropdown from '../profile/ProfileDropdown';
 
 const TvaraNavbar = ({
     isAuthenticated,
@@ -13,7 +12,6 @@ const TvaraNavbar = ({
     onLogout
 }) => {
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-    const [userData, setUserData] = useState(null)
     const navigate = useNavigate();
 
     const toggleProfileDropdown = () => {
@@ -31,41 +29,6 @@ const TvaraNavbar = ({
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showProfileDropdown]);
-
-    const handleLogout = () => {
-        setShowProfileDropdown(false);
-        onLogout();
-    };
-
-    const getProfileData = async () => {
-        const token = localStorage.getItem('token');
-
-        if (token) {
-            try {
-                const response = await axios.get('http://localhost:8000/profile', {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-                const userdetailExist = response.data.user;
-                if (userdetailExist) {
-                    setUserData(userdetailExist);
-                }
-            } catch (error) {
-                console.error('Profile Error:', error);
-            }
-        }
-    };
-
-
-    useEffect(() => {
-        if (isAuthenticated) {
-            getProfileData();
-        }
-
-        
-    }, [isAuthenticated])
-
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200/50 ">
@@ -104,24 +67,8 @@ const TvaraNavbar = ({
                                 </button>
 
                                 {/* Profile Dropdown */}
-                                {showProfileDropdown && (
-                                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                                        <div className="px-4 py-3 border-b border-gray-100">
-                                            <p className="text-sm font-medium text-gray-900">
-                                                {userData&&userData.username}
-                                            </p>
-                                            <p className="text-sm text-gray-500">
-                                                {userData&&userData.email}
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={handleLogout}
-                                            className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                                        >
-                                            <LogOut className="w-4 h-4 mr-2" />
-                                            Logout
-                                        </button>
-                                    </div>
+                                {(showProfileDropdown && isAuthenticated) && (
+                                    <ProfileDropdown onLogout = {onLogout} setShowProfileDropdown={setShowProfileDropdown}/>
                                 )}
                             </div>
                         ) : (
