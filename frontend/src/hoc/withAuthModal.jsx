@@ -209,11 +209,10 @@ const withAuthModal = (WrappedComponent) => {
             if (token) {
                 try {
                     const response = await axios.post('http://localhost:8000/is_authenticated', { token: token });
-
                     if (response.data.is_authenticated) {
                         return {
                             isAuth: true,
-                            user: response.data.user // Assuming the API returns user info
+                            user: response.data.user
                         };
                     }
                 } catch (error) {

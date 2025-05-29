@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 import bcrypt
+from bson import ObjectId
 
 load_dotenv()
 
@@ -25,6 +26,9 @@ class User:
 
     def get_user(self, email):
         user = self.collection.find_one({"email": email})
+        if user:
+            user["_id"] = str(user["_id"])  # Convert ObjectId to string
+        print("user",user)
         return user
     
     def get_user_by_email(self, email):

@@ -2,15 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import BrandLogo from '../elements/BrandLogo';
+import ProfileDetails from '../profile/ProfileDetails';
+import axios from 'axios';
 
-const TvaraNavbar = ({ 
-    isAuthenticated, 
-    userInfo, 
-    sidebarOpen, 
-    onToggleSidebar, 
-    onLogout 
+const TvaraNavbar = ({
+    isAuthenticated,
+    userInfo,
+    sidebarOpen,
+    onToggleSidebar,
+    onLogout
 }) => {
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [userData, setUserData] = useState(null)
     const navigate = useNavigate();
 
     const toggleProfileDropdown = () => {
@@ -33,6 +36,36 @@ const TvaraNavbar = ({
         setShowProfileDropdown(false);
         onLogout();
     };
+
+    const getProfileData = async () => {
+        const token = localStorage.getItem('token');
+
+        if (token) {
+            try {
+                const response = await axios.get('http://localhost:8000/profile', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                const userdetailExist = response.data.user;
+                if (userdetailExist) {
+                    setUserData(userdetailExist);
+                }
+            } catch (error) {
+                console.error('Profile Error:', error);
+            }
+        }
+    };
+
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            getProfileData();
+        }
+
+        
+    }, [isAuthenticated])
+
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200/50 ">
@@ -59,7 +92,7 @@ const TvaraNavbar = ({
                     </div>
 
                     <div className="flex items-center space-x-3">
-                        {isAuthenticated && userInfo ? (
+                        {isAuthenticated ? (
                             <div className="relative profile-dropdown-container">
                                 <button
                                     onClick={toggleProfileDropdown}
@@ -75,9 +108,11 @@ const TvaraNavbar = ({
                                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                                         <div className="px-4 py-3 border-b border-gray-100">
                                             <p className="text-sm font-medium text-gray-900">
-                                                {userInfo.username || userInfo.name}
+                                                {userData&&userData.username}
                                             </p>
-                                            <p className="text-sm text-gray-500">{userInfo.email}</p>
+                                            <p className="text-sm text-gray-500">
+                                                {userData&&userData.email}
+                                            </p>
                                         </div>
                                         <button
                                             onClick={handleLogout}
