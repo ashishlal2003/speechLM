@@ -56,7 +56,7 @@ function App(props) {
 
     console.log("userId", userId);
 
-    const ws = new WebSocket("ws://localhost:8000/ws/processing");
+    const ws = new WebSocket(`ws://localhost:8000/ws/processing?token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}`);
     setSocket(ws);
     ws.binaryType = "arraybuffer";
 

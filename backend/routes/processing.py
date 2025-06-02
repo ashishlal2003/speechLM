@@ -21,17 +21,36 @@ tts_engine = TTS_Engine.get_instance()
 async def process(websocket: WebSocket):
     await websocket.accept()
     print("[DEBUG] Processing WebSocket connection accepted")
+    
+    # Extract token and userId from query parameters
+    query_params = websocket.query_params
+    auth_token = query_params.get("token")
+    user_id = query_params.get("userId", "default_user")
+    
+    print(f"[DEBUG] Auth token from query: {bool(auth_token)}")
+    print(f"[DEBUG] User ID from query: {user_id}")
+    
     try:
         while True:
             try:
-
-                ## FIX here
-                data = await websocket.receive_text()
-                message = json.loads(data)
-                if message.get("type") == "logout":
-                    print("[INFO] Logout message received. Closing connection.")
-                    break
-                await speech_ai_pipeline(recognizer, llm_model, tts_engine, websocket)
+                message = await websocket.receive()
+                
+                # Handle text messages (like logout)
+                if message["type"] == "websocket.receive" and "text" in message:
+                    data = json.loads(message["text"])
+                    if data.get("type") == "logout":
+                        print("[INFO] Logout message received. Closing connection.")
+                        break
+                
+                # Handle binary messages (audio data)
+                elif message["type"] == "websocket.receive" and "bytes" in message:
+                    print(f"[DEBUG] Received audio data: {len(message['bytes'])} bytes")
+                    # Pass the audio data and auth info directly to the pipeline
+                    await speech_ai_pipeline(
+                        recognizer, llm_model, tts_engine, websocket, 
+                        message["bytes"], auth_token, user_id
+                    )
+                
             except WebSocketDisconnect:
                 print("[INFO] Client disconnected")
                 break
@@ -42,3 +61,4 @@ async def process(websocket: WebSocket):
         if websocket.client_state.name != "DISCONNECTED":
             await websocket.close()
         print("[DEBUG] WebSocket closed cleanly")
+
