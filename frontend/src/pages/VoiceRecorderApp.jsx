@@ -3,7 +3,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, MeshDistortMaterial, Sphere } from "@react-three/drei";
 import "../index.css";
 import Button from "../components/elements/Button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
 // Modified AnimatedSphere to take amplitude as a prop
@@ -56,7 +56,11 @@ function App(props) {
 
     console.log("userId", userId);
 
-    const ws = new WebSocket(`ws://localhost:8000/ws/processing?token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}`);
+    const ws = new WebSocket(
+      `ws://localhost:8000/ws/processing?token=${encodeURIComponent(
+        token
+      )}&userId=${encodeURIComponent(userId)}`
+    );
     setSocket(ws);
     ws.binaryType = "arraybuffer";
 
@@ -242,6 +246,17 @@ function App(props) {
     }
   };
 
+  const location = useLocation();
+  console.log(location.pathname);
+  
+  
+  useEffect(() => {
+
+    if (location.pathname !== "/tvara") {
+      handleLogout();
+    }
+  }, [location.pathname]);
+
   const handleLogout = async () => {
     // Check if the WebSocket exists and is open
     if (socket) {
@@ -277,31 +292,22 @@ function App(props) {
 
     // Clean up any recording resources
     stopRecordingResources();
-
-    // Clear authentication token from local storage
-    localStorage.removeItem("token");
-
-    // Navigate the user to the login or home page
-    navigate("/");
   };
 
   return (
     <div className="App">
-      hrhjg
-      <Button variant="primary" onClick={handleLogout}>
-        Logout
-      </Button>
-      <Canvas camera={{ position: [0, 0, 10], fov: 40 }} style={{ height: '100vh', width: '100%' }}>
+      <Canvas
+        camera={{ position: [0, 0, 10], fov: 40 }}
+        style={{ height: "100vh", width: "100%" }}
+      >
         <ambientLight intensity={0.5} /> {/* Adjusted intensity slightly */}
         <pointLight position={[10, 10, 10]} intensity={1} />
         {/* Removed other lights from original for simplicity, can be added back */}
         {/* <color attach="background" args={['#050520']} /> */}
-
         <AnimatedSphere amplitude={amplitude} />
-
-        <OrbitControls enableZoom={true} /> {/* Kept OrbitControls from new snippet, enabled zoom */}
+        <OrbitControls enableZoom={true} />{" "}
+        {/* Kept OrbitControls from new snippet, enabled zoom */}
       </Canvas>
-
       <div className="overlay">
         {/* Button text/functionality could be toggled if needed, e.g., "Stop Recording" [[6]] */}
         <button onClick={startRecording} className="speak-button">

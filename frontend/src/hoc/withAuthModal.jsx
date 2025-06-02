@@ -245,6 +245,7 @@ const withAuthModal = (WrappedComponent) => {
         };
 
         const handleLogout = () => {
+            navigate('/')
             localStorage.removeItem('token');
             setIsAuthenticated(false);
             setUserInfo(null);
