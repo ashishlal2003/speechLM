@@ -27,8 +27,6 @@ const Signup = () => {
 
     try {      
       const response = await axios.post('http://localhost:8000/register', payload);
-      console.log(response);
-      
       navigate('/login');
     } catch (error) {
       console.error('Signup error:', error.response?.data || error.message);
