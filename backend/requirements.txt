@@ -6,7 +6,7 @@ soundfile
 transformers
 google-generativeai
 ipython
-dotenv
+python-dotenv
 pydub
 fastapi
 uvicorn
@@ -16,3 +16,7 @@ pymongo
 uvicorn[standard]
 bcrypt
 python-jose
+langchain-google-genai
+langgraph
+langchain_core
+langchain
