@@ -1,9 +1,8 @@
-from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from services.Pipeline.pipeline import speech_ai_pipeline
 from services.TTS_module.model import TTS_Engine
 from services.STT.model import SpeechRecognizer
-from services.LLM.utils import setup_genai
-from config import AUDIO_FOLDER
+from services.LLM.model import setup_genai
 import os
 from dotenv import load_dotenv
 import json
