@@ -1,16 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
 import Button from "../../components/elements/Button";
 import Divider from "../../components/elements/Divider";
 import FormInput from "../../components/elements/FormInputs";
 import GoogleIcon from "../../components/elements/GoogleIcon";
 import { useForm } from "../../hooks/useForm";
-import {loginValidationRules} from "../../validation-rules/validationRules"
+import { loginValidationRules } from "../../validation-rules/validationRules"
 import axios from 'axios'
-import { useNavigate } from "react-router-dom";
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+
 
 const Login = () => {
-
   const navigate = useNavigate();
 
   const { formData, errors, isLoading, handleInputChange, handleSubmit } = useForm(
@@ -23,20 +23,40 @@ const Login = () => {
       email: data.email,
       password: data.password,
     };
-    
-    try {      
-      const response = await axios.post('http://localhost:8000/login', payload);      
 
+    try {
+      const response = await axios.post('http://localhost:8000/login', payload);
       localStorage.setItem('token', response.data.access_token);
-
       navigate('/tvara');
     } catch (error) {
       alert("Incorrect email or password");
     }
   };
 
-  const handleGoogleLogin = () => {
-    console.log('Google login clicked');
+  // const handleGoogleLogin = () => {
+  //   console.log('Google login clicked');
+  // };
+
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    console.log("Google Login Success:", credentialResponse);
+  //   try {
+  //     // Send the Google ID token to your backend for verification
+  //     const response = await axios.post('http://localhost:8000/google-login', {
+  //       id_token: credentialResponse.credential,
+  //     });
+
+  //     localStorage.setItem('token', response.data.access_token);
+  //     navigate('/tvara');
+  //   } catch (error) {
+  //     console.error("Google login failed on backend:", error);
+  //     alert("Google login failed. Please try again.");
+  //   }
+  };
+
+  const handleGoogleFailure = (error) => {
+    console.log('Google Login Failed:', error);
+    alert("Google login failed. Please try again.");
   };
 
   return (
@@ -90,7 +110,20 @@ const Login = () => {
         </div>
         <Divider />
 
-        <GoogleIcon onClick={handleGoogleLogin} />
+        {/* <GoogleIcon onClick={handleGoogleLogin} /> */}
+
+        <GoogleOAuthProvider clientId="">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleFailure}
+            // Optional: Customize button theme and shape
+            theme="filled_blue"
+            shape="rectangular"
+            text="signin_with"
+            size="large"
+            width="100%"
+          />
+        </GoogleOAuthProvider>
 
       </div>
     </AuthLayout>
