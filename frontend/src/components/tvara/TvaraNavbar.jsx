@@ -3,19 +3,43 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, X, User } from 'lucide-react';
 import BrandLogo from '../elements/BrandLogo';
 import ProfileDropdown from '../profile/ProfileDropdown';
+import axios from 'axios';
 
 const TvaraNavbar = ({
     isAuthenticated,
-    userInfo,
     sidebarOpen,
     onToggleSidebar,
     onLogout
 }) => {
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [userData, setUserData] = useState(null);
     const navigate = useNavigate();
 
     const toggleProfileDropdown = () => {
         setShowProfileDropdown(!showProfileDropdown);
+    };
+
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            getProfileData(token);
+        }
+    }, []);
+
+    const getProfileData = async (token) => {
+        try {
+            const response = await axios.get('http://localhost:8000/profile', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            setUserData(response.data);
+        } catch (error) {
+            console.error('Profile Error:', error);
+            localStorage.removeItem('token');
+            setUserData(null);
+        }
     };
 
     // Close profile dropdown when clicking outside
@@ -68,7 +92,7 @@ const TvaraNavbar = ({
 
                                 {/* Profile Dropdown */}
                                 {(showProfileDropdown && isAuthenticated) && (
-                                    <ProfileDropdown onLogout = {onLogout} setShowProfileDropdown={setShowProfileDropdown}/>
+                                    <ProfileDropdown onLogout = {onLogout} setShowProfileDropdown={setShowProfileDropdown} userData={userData}/>
                                 )}
                             </div>
                         ) : (

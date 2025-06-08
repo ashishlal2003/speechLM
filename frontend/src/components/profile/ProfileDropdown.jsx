@@ -1,36 +1,8 @@
 import { LogOut } from 'lucide-react';
-import { useState , useEffect} from 'react';
-import axios from 'axios';
 
-const ProfileDropdown = ({setShowProfileDropdown,onLogout}) => {
-    const [userData, setUserData] = useState(null);
+const ProfileDropdown = ({ setShowProfileDropdown, onLogout, userData }) => {
 
-    const getProfileData = async () => {
-        const token = localStorage.getItem('token');
-
-        if (token) {
-            try {
-                const response = await axios.get('http://localhost:8000/profile', {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-                const userdetailExist = response.data;
-
-                if (userdetailExist) {
-                    setUserData(userdetailExist);
-                }
-            } catch (error) {
-                console.error('Profile Error:', error);
-            }
-        }
-    };
-
-    useEffect(() => {
-            getProfileData();
-    }, [])
-
-        const handleLogout = () => {
+    const handleLogout = () => {
         setShowProfileDropdown(false);
         onLogout();
     };
@@ -40,11 +12,11 @@ const ProfileDropdown = ({setShowProfileDropdown,onLogout}) => {
         <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
             <div className="px-4 py-3 border-b border-gray-100">
                 <p className="text-sm font-medium text-gray-900">
-                    {userData && userData.username}
+                    {userData?.username}
 
                 </p>
                 <p className="text-sm text-gray-500">
-                    {userData && userData.email}
+                    {userData?.email}
                 </p>
             </div>
             <button
