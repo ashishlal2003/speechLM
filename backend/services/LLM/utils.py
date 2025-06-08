@@ -2,7 +2,7 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langgraph.graph import START, StateGraph, MessagesState
 from langgraph.prebuilt import tools_condition, ToolNode
 from services.LLM.prompts import system_prompt
-from services.LLM.tools import multiplication
+from services.LLM.tools import multiplication, get_weather
 
 def make_assistant_node(model, system_prompt):
     sys_msg = SystemMessage(content=system_prompt)
@@ -14,7 +14,7 @@ def make_assistant_node(model, system_prompt):
 
     return assistant
 
-tools = [multiplication]
+tools = [multiplication, get_weather]
 
 def ai_response(model, user_input, history_db, user_id):
     past_messages = history_db.get_conversation(user_id)

@@ -52,21 +52,55 @@ class TTS_Engine:
     
     
     def _split_into_sentences(self, text):
-        """Split text into sentences for incremental processing"""
-        sentences = re.split(r'(?<=[.!?,:;])\s+', text)
-        return [s.strip() for s in sentences if s.strip()]
+        """Split text into sentences, but keep them longer for smoother audio"""
+        sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])', text)
+        
+        # Combine very short sentences for smoother audio
+        combined_sentences = []
+        current_sentence = ""
+
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if not sentence:
+                continue
+                
+            # Combine sentences up to 200 characters for better flow
+            if len(current_sentence + " " + sentence) < 200:
+                current_sentence = (current_sentence + " " + sentence).strip()
+            else:
+                if current_sentence:
+                    combined_sentences.append(current_sentence)
+                current_sentence = sentence
+
+        if current_sentence:
+            combined_sentences.append(current_sentence)
+
+        return combined_sentences
     
-    def _chunk_audio(self, wav, sample_rate=22050, chunk_duration=0.25):
+    def _chunk_audio(self, wav, sample_rate=16000, chunk_duration=1.0):
         """Split audio array into chunks of specified duration"""
         wav = np.array(wav, dtype="float32")
         samples_per_chunk = int(sample_rate * chunk_duration)
         total_samples = len(wav)
         
-        for i in range(0, total_samples, samples_per_chunk):
-            chunk = wav[i:i + samples_per_chunk]
+        # Add small overlap between chunks for smoother transitions
+        overlap_samples = int(sample_rate * 0.05)  # 50ms overlap
+        
+        for i in range(0, total_samples, samples_per_chunk - overlap_samples):
+            end_idx = min(i + samples_per_chunk, total_samples)
+            chunk = wav[i:end_idx]
+            
+            # Apply fade in/out to prevent clicks
+            if len(chunk) > overlap_samples * 2:
+                # Fade in
+                fade_samples = min(overlap_samples, len(chunk) // 4)
+                chunk[:fade_samples] *= np.linspace(0, 1, fade_samples)
+                # Fade out
+                chunk[-fade_samples:] *= np.linspace(1, 0, fade_samples)
+            
             yield chunk.tobytes()
     
-    async def synthesize_streaming(self, text, sample_rate=22050, reference_audio=None):
+    async def synthesize_streaming(self, text, sample_rate=16000, reference_audio=None):
         """
         Incrementally synthesize text sentence by sentence and yield audio chunks
         """
@@ -91,6 +125,12 @@ class TTS_Engine:
                     )
                 else:
                     wav = self.tts.tts(sentence)
+                
+                wav = np.array(wav, dtype="float32")
+                if len(wav) > 0:
+                    max_val = np.max(np.abs(wav))
+                    if max_val > 0:
+                        wav = wav / max_val * 0.8  # Normalize to 80% to prevent clipping
                 
                 for chunk in self._chunk_audio(wav, sample_rate):
                     yield chunk
