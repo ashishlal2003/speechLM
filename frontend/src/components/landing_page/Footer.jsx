@@ -2,7 +2,7 @@ export default function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-12 px-12">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div>
             <h4 className="text-lg font-semibold mb-4">Product</h4>
             <ul className="space-y-2">
@@ -151,15 +151,15 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-        </div>
+        </div> */}
 
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">
-            <span className="text-lg font-bold">Tvara.AI</span>
+            <span className="text-lg font-bold">Tvarā Labs</span>
           </div>
           <div className="text-gray-400 text-sm">
             <p>
-              © {new Date().getFullYear()} Tvara AI Technologies. All rights reserved.
+              © {new Date().getFullYear()} Tvarā Labs. All rights reserved.
             </p>
             <p className="text-center">Whitefield, Bangalore - 560048</p>
           </div>

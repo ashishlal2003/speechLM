@@ -14,7 +14,7 @@ function HIW() {
             </span>
           </h2>
           <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
-            A harmonious blend of speech, culture, and AI. Here's how Tvarā flows.
+            Your AI friend that thinks, acts, and delivers. Here's how Tvarā flows as your intelligent agent.
           </p>
         </div>
 
@@ -24,19 +24,19 @@ function HIW() {
               step: 1,
               title: "Speak Naturally",
               description:
-                "Talk in your mother tongue — Hindi, Tamil, Assamese, or any of the 22+ supported languages.",
+                "Talk to Tvarā in English like you would to a friend — natural, conversational, and comfortable.",
             },
             {
               step: 2,
-              title: "Contextual Understanding",
+              title: "Intelligent Understanding",
               description:
-                "AI listens like a true Bhāratiya — grasping tone, meaning, and emotion.",
+                "AI processes your request with cultural awareness and contextual intelligence, planning the best approach.",
             },
             {
               step: 3,
-              title: "Culturally Aware Response",
+              title: "Agent in Action",
               description:
-                "Responds with intelligence that's aware of your world — your festivals, greetings, and values.",
+                "Tvarā uses multiple tools and takes actions to complete your task, delivering results that matter to you.",
             },
           ].map((step, index) => (
             <div

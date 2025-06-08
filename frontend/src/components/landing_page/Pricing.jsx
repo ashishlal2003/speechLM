@@ -12,7 +12,7 @@ function Pricing() {
                         Choose Your Tvara Plan
                     </h2>
                     <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
-                        From individuals to enterprises, Tvara offers tailored plans to match your voice AI needs.
+                        From individuals to enterprises, Tvara offers tailored plans for your AI friend and agent needs.
                     </p>
                 </div>
 
@@ -22,9 +22,10 @@ function Pricing() {
                             name: "Basic",
                             price: "Free",
                             features: [
-                                "Hindi & English support",
-                                "Essential voice commands",
+                                "English language support",
+                                "Essential AI agent features",
                                 "50 queries/day",
+                                "Basic tool access",
                                 "Community support",
                             ],
                             buttonText: "Get Started",
@@ -34,10 +35,11 @@ function Pricing() {
                             name: "Pro",
                             price: "₹299",
                             features: [
-                                "8 Indian languages",
-                                "Advanced voice AI",
+                                "Full English capabilities",
+                                "Advanced AI agent with all tools",
                                 "Unlimited queries",
                                 "Priority support",
+                                "Early access to Indian languages",
                                 "Ad-free experience",
                             ],
                             buttonText: "Upgrade Now",
@@ -47,11 +49,12 @@ function Pricing() {
                             name: "Enterprise",
                             price: "₹999",
                             features: [
-                                "All 22+ Indian languages",
-                                "Custom voice training",
+                                "All current & upcoming languages",
+                                "Custom AI agent training",
+                                "Advanced tool integrations",
                                 "API & dashboard access",
                                 "Dedicated account manager",
-                                "Custom integrations",
+                                "Custom workflows",
                             ],
                             buttonText: "Talk to Sales",
                             highlighted: false,
