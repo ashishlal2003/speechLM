@@ -6,7 +6,7 @@ soundfile
 transformers
 google-generativeai
 ipython
-dotenv
+python-dotenv
 pydub
 fastapi
 uvicorn
@@ -17,3 +17,7 @@ uvicorn[standard]
 bcrypt
 python-jose
 google-auth==2.40.3
+langchain-google-genai
+langgraph
+langchain_core
+langchain

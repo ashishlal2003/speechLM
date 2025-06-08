@@ -1,23 +1,43 @@
-import google.generativeai as genai
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langgraph.graph import START, StateGraph, MessagesState
+from langgraph.prebuilt import tools_condition, ToolNode
+from services.LLM.prompts import system_prompt
+from services.LLM.tools import multiplication
 
-def setup_genai(api_key):
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    return model
+def make_assistant_node(model, system_prompt):
+    sys_msg = SystemMessage(content=system_prompt)
+
+    def assistant(state: MessagesState):
+        return {
+            "messages": [model.invoke([sys_msg] + state["messages"])]
+        }
+
+    return assistant
+
+tools = [multiplication]
 
 def ai_response(model, user_input, history_db, user_id):
     past_messages = history_db.get_conversation(user_id)
-    history_prompt = ""
-
+    state = {"messages": []}
     for message in past_messages:
-        history_prompt += f"User: {message['user_input']}\nAI: {message['ai_response']}\n"
+        state["messages"].append(HumanMessage(content=message["user_input"]))
+        state["messages"].append(AIMessage(content=message["ai_response"]))
 
-    final_prompt = f"{history_prompt}User: {user_input}\nAI:"
+    state["messages"].append(HumanMessage(content=user_input))
 
-    response = model.generate_content(final_prompt)
-    response_text = response.text
+    assistant_node = make_assistant_node(model, system_prompt)
 
-    history_db.save_message(user_id, user_input, response_text)
-    
-    print("AI Response:", response_text)
-    return response_text
+    builder = StateGraph(MessagesState)
+    builder.add_node("assistant", assistant_node)
+    builder.add_node("tools", ToolNode(tools))
+    builder.add_edge(START, "assistant")
+    builder.add_conditional_edges("assistant", tools_condition)
+    builder.add_edge("tools", "assistant")
+    graph = builder.compile()
+
+    output_state = graph.invoke(state)
+    assistant_reply = output_state["messages"][-1].content
+
+    history_db.save_message(user_id, user_input, assistant_reply)
+
+    return assistant_reply
