@@ -8,6 +8,7 @@ import { useForm } from "../../hooks/useForm";
 import { createValidationRules } from "../../validation-rules/validationRules"
 import axios from 'axios'
 import { useNavigate } from "react-router-dom";
+import GoogleAuthButton from "../../components/auth/GoogleAuthButton";
 
 const Signup = () => {
 
@@ -31,10 +32,6 @@ const Signup = () => {
     } catch (error) {
       console.error('Signup error:', error.response?.data || error.message);
     }
-  };
-
-  const handleGoogleSignup = () => {
-    console.log('Google signup clicked');
   };
 
   return (
@@ -101,7 +98,7 @@ const Signup = () => {
           </p>
         </div>
         <Divider />
-        <GoogleIcon onClick={handleGoogleSignup} />
+        <GoogleAuthButton/>
       </div>
     </AuthLayout>
   );
