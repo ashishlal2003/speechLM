@@ -6,24 +6,15 @@ from schemas.register_schema import RegisterRequest
 from schemas.login_schema import LoginRequest
 from schemas.token_schema import TokenData
 
-# ///////////////////////////////////////////
+from schemas.login_schema import GoogleLoginRequest
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 import os
 
-from pydantic import BaseModel
-
-class GoogleLoginRequest(BaseModel):
-    id_token: str
-
-# ///////////////////////////////////
 
 router = APIRouter()
 
 user = User()
-
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "YOUR_GOOGLE_CLIENT_ID") # Replace with your actual client ID or get from .env
-
 
 @router.post("/register")
 def register(req: RegisterRequest):
@@ -42,7 +33,6 @@ def login(req: LoginRequest):
     hashed = curr["password"].encode()
     match = bcrypt.checkpw(req.password.encode(), hashed)
 
-    print("Math:", match)
 
     if not match:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
@@ -64,18 +54,15 @@ def is_authenticated(req: TokenData):
     return {"is_authenticated": True}
 
 
-
-# ////////////////////////////////////////////////////////////
-
 @router.post("/google-login")
 async def google_login(req: GoogleLoginRequest):
     try:
         # Verify the Google ID token
         idinfo = id_token.verify_oauth2_token(
-            req.id_token, google_requests.Request(), ""
+            req.id_token, google_requests.Request(), os.getenv("GOOGLE_CLIENT_ID")
         )
 
-        # The 'sub' field is the unique Google ID
+        # The 'sub' field is the unique Google I
         # The 'email' field is the user's email
         # The 'name' field is the user's full name
         google_user_id = idinfo['sub']
