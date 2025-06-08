@@ -54,8 +54,6 @@ function App(props) {
     const token = localStorage.getItem("token");
     const userId = token ? jwtDecode(token).sub : "default_user";
 
-    console.log("userId", userId);
-
     const ws = new WebSocket(
       `ws://localhost:8000/ws/processing?token=${encodeURIComponent(
         token

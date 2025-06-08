@@ -28,7 +28,6 @@ class User:
         user = self.collection.find_one({"email": email})
         if user:
             user["_id"] = str(user["_id"])  # Convert ObjectId to string
-        print("user",user)
         return user
     
     def get_user_by_email(self, email):
