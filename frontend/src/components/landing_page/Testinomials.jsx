@@ -10,7 +10,7 @@ function Testimonials() {
                         What Our Users Say
                     </h2>
                     <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                        Hear from fellow Indians embracing Tvara, the voice assistant built with our roots.
+                        Hear from users who've found their AI friend in Tvara — an agent that truly understands and delivers.
                     </p>
                 </div>
 
@@ -20,19 +20,19 @@ function Testimonials() {
                             name: "Priya Sharma",
                             location: "Mumbai",
                             quote:
-                                "Tvara understands my Marathi accent perfectly! It's like talking to someone who truly gets our culture.",
+                                "Tvara feels like talking to a friend who actually gets things done! It understands my context and uses tools to help me manage my day perfectly.",
                         },
                         {
                             name: "Rahul Verma",
                             location: "Delhi",
                             quote:
-                                "I use Tvara every day to manage my schedule. Its Hindi support is flawless and the cultural references make it feel like home.",
+                                "I love how Tvara acts as my personal agent. It doesn't just chat — it takes action and completes tasks. Can't wait for Hindi support!",
                         },
                         {
                             name: "Anjali Patel",
                             location: "Ahmedabad",
                             quote:
-                                "The way Tvara understands context in Gujarati conversations is amazing. Technology with Indian soul!",
+                                "The way Tvara understands Indian context while being so capable with tools is amazing. It's like having a smart friend who's always ready to help.",
                         },
                     ].map((testimonial, index) => (
                         <div

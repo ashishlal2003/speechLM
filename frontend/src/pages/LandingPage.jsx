@@ -53,10 +53,10 @@ export default function Temp2() {
       <HIW />
 
       {/* Testimonials Section */}
-      <Testimonials />
+      {/* <Testimonials /> */}
 
       {/* Pricing Section */}
-      <Pricing />
+      {/* <Pricing /> */}
 
 
       {/* CTA Section */}

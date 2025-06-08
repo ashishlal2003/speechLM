@@ -16,7 +16,7 @@ import {
               From Bhārat, For the World
             </h2>
             <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
-              Rooted in dharma, fluent in diversity — Tvarā blends the sacred voices of Bhārata with the precision of modern AI.
+              Rooted in dharma, powered by intelligence — Tvarā is your AI friend and agent that understands, acts, and grows with you.
             </p>
           </div>
   
@@ -26,7 +26,7 @@ import {
                 icon: <Command className="h-7 w-7 text-orange-600" />,
                 title: "Bhashā Sampanna",
                 description:
-                  "Fluent in 22+ Indian tongues — from Maithili to Malayalam — for conversations that feel like home.",
+                  "Currently fluent in English, with upcoming support for 22+ Indian languages — conversations that will feel like home.",
                 gradient: "from-orange-100 via-orange-50 to-white",
                 ringColor: "ring-orange-300"
               },
@@ -34,15 +34,15 @@ import {
                 icon: <Sparkles className="h-7 w-7 text-green-600" />,
                 title: "Culturally Conscious",
                 description:
-                  "Knows your Diwali from your Onam. Tvarā resonates with the rhythm of Indian life.",
+                  "Your AI friend who understands Indian culture and context. Tvarā resonates with the rhythm of Indian life.",
                 gradient: "from-green-100 via-green-50 to-white",
                 ringColor: "ring-green-300"
               },
               {
                 icon: <Settings className="h-7 w-7 text-blue-600" />,
-                title: "Ever-Learning Shrota",
+                title: "Agent with Tools",
                 description:
-                  "Learns the way you speak — refining itself through every syllable, every silence.",
+                  "More than conversation — Tvarā uses multiple tools to get things done, learning and adapting through every interaction.",
                 gradient: "from-blue-100 via-blue-50 to-white",
                 ringColor: "ring-blue-300"
               },
@@ -69,4 +69,3 @@ import {
   }
   
   export default Features;
-  

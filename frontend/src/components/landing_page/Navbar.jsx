@@ -20,7 +20,7 @@ export default function Navbar({ scrolled }) {
                 <div className="flex justify-between items-center px-6 py-4">
                     <div className="flex items-center space-x-2">
                         <span className="text-xl font-bold bg-gradient-to-r from-orange-500 via-green-500 to-blue-600 bg-clip-text text-transparent">
-                            Tvara
+                            Tvarā
                         </span>
                     </div>
 
@@ -37,7 +37,7 @@ export default function Navbar({ scrolled }) {
                         >
                             How It Works
                         </a>
-                        <a
+                        {/* <a
                             href="#testimonials"
                             className="hover:text-green-600 transition-colors"
                         >
@@ -48,7 +48,7 @@ export default function Navbar({ scrolled }) {
                             className="hover:text-green-600 transition-colors"
                         >
                             Pricing
-                        </a>
+                        </a> */}
                     </div>
 
                     <Link to="/tvara">
@@ -83,12 +83,12 @@ export default function Navbar({ scrolled }) {
                         <a href="#how-it-works" className="py-2 border-b border-gray-100">
                             How It Works
                         </a>
-                        <a href="#testimonials" className="py-2 border-b border-gray-100">
+                        {/* <a href="#testimonials" className="py-2 border-b border-gray-100">
                             Testimonials
                         </a>
                         <a href="#pricing" className="py-2">
                             Pricing
-                        </a>
+                        </a> */}
                         <button className="flex items-center justify-center space-x-2 bg-gradient-to-r from-orange-500 to-green-500 text-white px-4 py-2 rounded-full">
                             <span>Try Now</span>
                             <Mic className="h-4 w-4" />
