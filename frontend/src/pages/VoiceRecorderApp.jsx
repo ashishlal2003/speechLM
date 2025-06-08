@@ -8,7 +8,6 @@ import { jwtDecode } from "jwt-decode";
 
 // Modified AnimatedSphere to take amplitude as a prop
 function AnimatedSphere({ amplitude }) {
-  // [[3]] (concept of reacting to audio)
   const meshRef = useRef();
 
   useFrame(() => {
@@ -22,8 +21,7 @@ function AnimatedSphere({ amplitude }) {
   return (
     <Sphere args={[1.5, 128, 128]} ref={meshRef}>
       <MeshDistortMaterial
-        color="#eb7067
-      "
+        color="#eb7067"
         speed={2}
       />
     </Sphere>
@@ -33,24 +31,32 @@ function AnimatedSphere({ amplitude }) {
 function App(props) {
   const [socket, setSocket] = useState(null);
   const [amplitude, setAmplitude] = useState(0);
-  // mediaRecorderRef is not used in the VAD logic, but kept if needed for other types of recording
   const mediaRecorderRef = useRef(null);
 
+  // Audio playback management
   const audioQueueRef = useRef([]);
-  const audioContextRef = useRef(null); // For playing back audio
+  const audioContextRef = useRef(null);
   const isPlayingRef = useRef(false);
+  const currentSourceRef = useRef(null);
+  const nextScheduledTimeRef = useRef(0);
+  const bufferingRef = useRef(false);
 
-  // Refs for recording stream and processor to manage them
+  // Recording management
   const recordingStreamRef = useRef(null);
   const recordingProcessorRef = useRef(null);
   const recordingAudioContextRef = useRef(null);
 
   const navigate = useNavigate();
 
+  // Constants for smooth audio playback
+  const MIN_BUFFER_SIZE = 3; // Minimum chunks to buffer before starting playback
+  const FADE_DURATION = 0.01; // 10ms fade for smooth transitions
+
   useEffect(() => {
     // AudioContext for playback
     audioContextRef.current = new (window.AudioContext ||
       window.webkitAudioContext)();
+    
     const token = localStorage.getItem("token");
     const userId = token ? jwtDecode(token).sub : "default_user";
 
@@ -71,17 +77,27 @@ function App(props) {
           console.log("[Socket] Received transcription:", data.text);
         } else if (data.type === "complete") {
           console.log("[Socket] TTS response complete");
+          bufferingRef.current = false; // Allow playback of remaining chunks
+          // Start playback if we have any chunks waiting
+          if (!isPlayingRef.current && audioQueueRef.current.length > 0) {
+            playAudioQueue();
+          }
         } else if (data.type === "error") {
           console.error("[Socket] Error:", data.message);
         }
       } else {
-        const audioData = event.data; // event.data is ArrayBuffer
+        const audioData = event.data;
         try {
           const audioBuffer = await audioContextRef.current.decodeAudioData(
             audioData.slice(0)
-          ); // Use slice(0) to create a copy if needed
+          );
           audioQueueRef.current.push(audioBuffer);
-          if (!isPlayingRef.current) playAudioQueue();
+          
+          // Start playback when we have enough chunks buffered OR when complete
+          if (!isPlayingRef.current && 
+              (audioQueueRef.current.length >= MIN_BUFFER_SIZE || !bufferingRef.current)) {
+            playAudioQueue();
+          }
         } catch (e) {
           console.error("Error decoding audio data:", e);
         }
@@ -96,53 +112,104 @@ function App(props) {
       ) {
         audioContextRef.current.close();
       }
-      // Ensure recording resources are cleaned up on unmount
       stopRecordingResources();
     };
   }, []);
 
-  const playAudioQueue = () => {
+  const playAudioQueue = async () => {
     if (audioQueueRef.current.length === 0) {
       isPlayingRef.current = false;
-      setAmplitude(0); // Reset amplitude when queue is empty
+      setAmplitude(0);
+      nextScheduledTimeRef.current = 0;
       return;
     }
 
+    if (isPlayingRef.current) return; // Prevent multiple simultaneous playbacks
+
     isPlayingRef.current = true;
-    const buffer = audioQueueRef.current.shift();
-    const sourceNode = audioContextRef.current.createBufferSource();
-    sourceNode.buffer = buffer;
+    
+    // Ensure audio context is running
+    if (audioContextRef.current.state === 'suspended') {
+      await audioContextRef.current.resume();
+    }
 
-    const analyserNode = audioContextRef.current.createAnalyser();
-    sourceNode.connect(analyserNode);
-    analyserNode.connect(audioContextRef.current.destination); // Connect analyser to output
-
-    const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
-    const updateAmplitudeCallback = () => {
-      if (!isPlayingRef.current) {
-        setAmplitude(0); // Ensure amplitude is zero if not playing
-        return;
-      }
-      analyserNode.getByteTimeDomainData(dataArray);
-      const norm =
-        dataArray.reduce((a, b) => a + Math.abs(b - 128), 0) / dataArray.length;
-      setAmplitude(norm / 128);
-      requestAnimationFrame(updateAmplitudeCallback);
-    };
-
-    updateAmplitudeCallback();
-    sourceNode.start();
-    sourceNode.onended = () => {
-      // Check if it was the last item
+    const playNextChunk = () => {
       if (audioQueueRef.current.length === 0) {
         isPlayingRef.current = false;
-        setAmplitude(0); // Reset amplitude when playback ends
+        setAmplitude(0);
+        nextScheduledTimeRef.current = 0;
+        return;
       }
-      playAudioQueue(); // Continue with the next item or set isPlaying to false
+
+      const buffer = audioQueueRef.current.shift();
+      const sourceNode = audioContextRef.current.createBufferSource();
+      sourceNode.buffer = buffer;
+
+      // Create gain node for smooth transitions
+      const gainNode = audioContextRef.current.createGain();
+      sourceNode.connect(gainNode);
+
+      // Set up amplitude monitoring
+      const analyserNode = audioContextRef.current.createAnalyser();
+      analyserNode.fftSize = 256;
+      gainNode.connect(analyserNode);
+      analyserNode.connect(audioContextRef.current.destination);
+
+      const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+      
+      const updateAmplitude = () => {
+        if (!isPlayingRef.current) {
+          setAmplitude(0);
+          return;
+        }
+        analyserNode.getByteTimeDomainData(dataArray);
+        const norm = dataArray.reduce((a, b) => a + Math.abs(b - 128), 0) / dataArray.length;
+        setAmplitude(norm / 128);
+        requestAnimationFrame(updateAmplitude);
+      };
+
+      // Schedule playback for smooth continuation
+      const currentTime = audioContextRef.current.currentTime;
+      const startTime = Math.max(currentTime, nextScheduledTimeRef.current);
+      
+      sourceNode.start(startTime);
+      nextScheduledTimeRef.current = startTime + buffer.duration;
+
+      // Add small fade-in to prevent clicks
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(1, startTime + FADE_DURATION);
+
+      updateAmplitude();
+      currentSourceRef.current = sourceNode;
+
+      sourceNode.onended = () => {
+        // Small delay to prevent rapid-fire playback
+        setTimeout(playNextChunk, 10);
+      };
     };
+
+    playNextChunk();
+  };
+
+  const stopAllAudio = () => {
+    if (currentSourceRef.current) {
+      try {
+        currentSourceRef.current.stop();
+      } catch (e) {
+        // Source might already be stopped
+      }
+      currentSourceRef.current = null;
+    }
+    
+    audioQueueRef.current = [];
+    isPlayingRef.current = false;
+    nextScheduledTimeRef.current = 0;
+    setAmplitude(0);
   };
 
   const stopRecordingResources = () => {
+    stopAllAudio(); // Stop any playing audio
+    
     if (recordingProcessorRef.current) {
       recordingProcessorRef.current.disconnect();
       recordingProcessorRef.current = null;
@@ -162,18 +229,24 @@ function App(props) {
   };
 
   const startRecording = async () => {
-    // [[4]] [[5]] General concept of audio recording in React
     if (recordingStreamRef.current) {
       console.log(
         "[VAD] Recording already in progress or not cleaned up. Stopping previous."
       );
-      stopRecordingResources(); // Ensure previous resources are stopped
+      stopRecordingResources();
     }
-    setAmplitude(0); // Reset amplitude before starting new recording
+    setAmplitude(0);
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      recordingStreamRef.current = stream; // Store stream
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 16000
+        } 
+      });
+      recordingStreamRef.current = stream;
 
       recordingAudioContextRef.current = new (window.AudioContext ||
         window.webkitAudioContext)();
@@ -181,10 +254,10 @@ function App(props) {
 
       const source = audioCtx.createMediaStreamSource(stream);
       const processor = audioCtx.createScriptProcessor(4096, 1, 1);
-      recordingProcessorRef.current = processor; // Store processor
+      recordingProcessorRef.current = processor;
 
       source.connect(processor);
-      processor.connect(audioCtx.destination); // Essential for onaudioprocess to fire
+      processor.connect(audioCtx.destination);
 
       const silenceThreshold = 0.01;
       const silenceDurationLimit = 1000; // 1 second of silence
@@ -195,13 +268,13 @@ function App(props) {
       console.log("[VAD] Listening for speech...");
 
       processor.onaudioprocess = (event) => {
-        if (!recordingStreamRef.current) return; // Stop processing if stream is stopped
+        if (!recordingStreamRef.current) return;
 
         const input = event.inputBuffer.getChannelData(0);
         const rms = Math.sqrt(
           input.reduce((acc, x) => acc + x * x, 0) / input.length
         );
-        setAmplitude(rms); // Update amplitude for sphere animation
+        setAmplitude(rms);
 
         if (rms > silenceThreshold) {
           silenceStart = null;
@@ -217,8 +290,8 @@ function App(props) {
             silenceStart = null;
             console.log("[VAD] User stopped speaking. Processing audio.");
 
-            stopRecordingResources(); // Stop mic and processor
-            setAmplitude(0); // Reset amplitude as recording part is done
+            stopRecordingResources();
+            setAmplitude(0);
 
             if (audioBuffer.length > 0) {
               const pcmFloat = new Float32Array(audioBuffer);
@@ -232,43 +305,39 @@ function App(props) {
 
               if (socket && socket.readyState === WebSocket.OPEN) {
                 console.log("[Socket] Sending audio buffer to server...");
+                bufferingRef.current = true; // Start buffering mode
+                audioQueueRef.current = []; // Clear any existing queue
                 socket.send(pcmInt16.buffer);
               }
             }
-            audioBuffer = []; // Reset buffer for next time
+            audioBuffer = [];
           }
         }
       };
     } catch (error) {
       console.error("Error starting recording:", error);
-      setAmplitude(0); // Ensure amplitude is reset on error
-      stopRecordingResources(); // Clean up resources on error
+      setAmplitude(0);
+      stopRecordingResources();
     }
   };
 
   const location = useLocation();
   console.log(location.pathname);
   
-  
   useEffect(() => {
-
     if (location.pathname !== "/tvara") {
       handleLogout();
     }
   }, [location.pathname]);
 
   const handleLogout = async () => {
-    // Check if the WebSocket exists and is open
     if (socket) {
       if (socket.readyState === WebSocket.OPEN) {
         console.log(
           "[Logout] Sending logout message and closing WebSocket connection..."
         );
 
-        // Send a custom logout message to the server
         socket.send(JSON.stringify({ type: "logout" }));
-
-        // Close the WebSocket connection with a normal closure code
         socket.close(1000, "User logout");
       } else if (socket.readyState === WebSocket.CLOSING) {
         console.log("[Logout] WebSocket is already closing...");
@@ -276,7 +345,6 @@ function App(props) {
         console.log("[Logout] WebSocket is already closed.");
       }
 
-      // Wait for the WebSocket to fully close
       await new Promise((resolve) => {
         const checkClosed = () => {
           if (socket.readyState === WebSocket.CLOSED) {
@@ -290,7 +358,6 @@ function App(props) {
       });
     }
 
-    // Clean up any recording resources
     stopRecordingResources();
   };
 
@@ -300,18 +367,14 @@ function App(props) {
         camera={{ position: [0, 0, 10], fov: 40 }}
         style={{ height: "100vh", width: "100%" }}
       >
-        <ambientLight intensity={0.5} /> {/* Adjusted intensity slightly */}
+        <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} intensity={1} />
-        {/* Removed other lights from original for simplicity, can be added back */}
-        {/* <color attach="background" args={['#050520']} /> */}
         <AnimatedSphere amplitude={amplitude} />
-        <OrbitControls enableZoom={true} />{" "}
-        {/* Kept OrbitControls from new snippet, enabled zoom */}
+        <OrbitControls enableZoom={true} />
       </Canvas>
       <div className="overlay">
-        {/* Button text/functionality could be toggled if needed, e.g., "Stop Recording" [[6]] */}
         <button onClick={startRecording} className="speak-button">
-          🎙️ Speak
+          🎤 Speak
         </button>
       </div>
     </div>
