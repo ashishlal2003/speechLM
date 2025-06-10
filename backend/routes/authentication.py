@@ -11,6 +11,9 @@ from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 import os
 
+from utils.generate_otp import generate_otp
+from utils.send_otp_email import send_otp_email
+
 
 router = APIRouter()
 
@@ -30,6 +33,10 @@ def login(req: LoginRequest):
     if not curr:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
     
+
+    # if not curr.get("is_verified", False):
+    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not verified. Please verify your email with OTP.")
+    
     hashed = curr["password"].encode()
     match = bcrypt.checkpw(req.password.encode(), hashed)
 
@@ -40,9 +47,38 @@ def login(req: LoginRequest):
     access_token = create_access_token(data={"sub": str(curr["_id"]), "email": curr["email"]})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/logout")
-def logout(user_id: str):
-    return {"message": "User logged out successfully"}
+from pydantic import BaseModel
+
+class EmailRequest(BaseModel):
+    email: str
+
+@router.post("/request-otp")
+def request_otp(request: EmailRequest):
+    email = request.email
+    user_obj = user.get_user(email)
+    if not user_obj:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    otp_code = generate_otp()
+    user.set_otp(email, otp_code)
+    send_otp_email(email, otp_code)
+
+    return {"message": "OTP sent successfully"}
+
+class OTPVerificationRequest(BaseModel):
+    email: str
+    otp_code: str
+
+@router.post("/verify-otp")
+def verify_otp(request: OTPVerificationRequest):
+    email = request.email
+    otp_code = request.otp_code
+
+    is_valid = user.verify_otp(email, otp_code)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+
+    return {"message": "User verified successfully"}
 
 @router.post("/is_authenticated")
 def is_authenticated(req: TokenData):

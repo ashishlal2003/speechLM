@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route} from 'react-router-dom';
 import withAuthModal from "./hoc/withAuthModal"
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
+import OTPVerification from './components/auth/OTPVerification';
 
 const AuthenticatedVoiceRecorderAppRoute = withAuthModal(VoiceRecorderApp);
 
@@ -16,6 +17,7 @@ function App() {
         <Route path='/tvara' element={<AuthenticatedVoiceRecorderAppRoute/>}/>
         <Route path='/login' element={<Login/>}/>
         <Route path='/register' element={<Signup/>}/>
+        <Route path="/verify-otp" element={<OTPVerification />} />
       </Routes>
     </BrowserRouter>
 

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from models.user import User
@@ -11,6 +12,48 @@ class UserDB:
         self.client = MongoClient(db_url)
         self.db = self.client[db_name]
         self.collection = self.db[collection_name]
+
+    def set_otp(self, email, otp_code, expiry_minutes=10):
+        expiry = datetime.utcnow() + timedelta(minutes=expiry_minutes)
+        self.collection.update_one(
+            {"email": email},
+            {"$set": {"otp": otp_code, "otp_expiry": expiry}}
+        )
+
+    
+    def verify_otp(self, email, otp_code):
+        user = self.collection.find_one({"email": email})
+        print("ot", otp_code)
+        if not user:
+            return False
+
+        if user.get("otp") != otp_code:
+            return False
+
+        otp_expiry = user.get("otp_expiry")
+        if not otp_expiry:
+            return False
+
+        if isinstance(otp_expiry, str):
+            try:
+                otp_expiry = datetime.fromisoformat(otp_expiry)
+            except ValueError:
+                return False
+
+        if otp_expiry.tzinfo is None:
+            otp_expiry = otp_expiry.replace(tzinfo=timezone.utc)
+
+        if otp_expiry < datetime.now(timezone.utc):
+            return False
+
+        self.collection.update_one(
+            {"email": email},
+            {"$set": {"is_verified": True}, "$unset": {"otp": "", "otp_expiry": ""}}
+        )
+
+        return True
+
+
 
     def create_user(self, username, email, password):
         user = User(username, email, password)
