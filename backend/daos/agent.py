@@ -7,7 +7,7 @@ from datetime import datetime
 
 load_dotenv()
 
-class AgentService:
+class AgentDB:
     def __init__(self, db_url=os.getenv("MONGO_URI"), db_name="chat_db", collection_name="agents"):
         self.client = MongoClient(db_url)
         self.db = self.client[db_name]
