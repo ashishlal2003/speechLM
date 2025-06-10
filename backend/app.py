@@ -20,4 +20,4 @@ app.include_router(dashboard.router, tags=["Dashboard"])
 
 @app.get("/")
 def home():
-    return {"message": "Hello World"}
+    return {"Smile":"Welcome to Tvara Backend!"}
