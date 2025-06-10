@@ -1,46 +1,42 @@
 from pymongo import MongoClient
-from datetime import datetime
+from bson.objectid import ObjectId
+from models.user import User as UserModel
 import os
 from dotenv import load_dotenv
-import bcrypt
-from bson import ObjectId
 
 load_dotenv()
 
-class User:
+class UserDB:
     def __init__(self, db_url=os.getenv("MONGO_URI"), db_name="chat_db", collection_name="users"):
         self.client = MongoClient(db_url)
         self.db = self.client[db_name]
         self.collection = self.db[collection_name]
 
     def create_user(self, username, email, password):
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-        user = {
-            "username": username,
-            "email": email,
-            "password": hashed_password,
-            "created_at": datetime.now()
-        }
-        self.collection.insert_one(user)
+        user = UserModel(username, email, password)
+        self.collection.insert_one(user.to_dict())
 
     def get_user(self, email):
         user = self.collection.find_one({"email": email})
         if user:
-            user["_id"] = str(user["_id"])  # Convert ObjectId to string
+            user["_id"] = str(user["_id"])
         return user
-    
+
     def get_user_by_email(self, email):
-        user = self.collection.find_one({"email": email})
-        return user
+        return self.collection.find_one({"email": email})
 
     def get_user_by_id(self, user_id):
-        user = self.collection.find_one({"_id": user_id})
-        return user
-    
+        return self.collection.find_one({"_id": ObjectId(user_id)})
+
     def update_user(self, user_id, username, email, password):
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        self.collection.update_one({"_id": user_id}, {"$set": {"username": username, "email": email, "password": hashed_password}})
+        existing_user = self.collection.find_one({"_id": ObjectId(user_id)})
+        if existing_user:
+            updated_user = UserModel(username, email, password)
+            user_dict = updated_user.to_dict()
+            user_dict["_id"] = existing_user["_id"]
+            self.collection.replace_one({"_id": existing_user["_id"]}, user_dict)
+            return user_dict
+        return None
 
     def delete_user(self, user_id):
-        self.collection.delete_one({"_id": user_id})
+        self.collection.delete_one({"_id": ObjectId(user_id)})
