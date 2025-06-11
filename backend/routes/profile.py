@@ -1,14 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from utils.jwt_auth import verify_jwt
+from fastapi.security import HTTPBearer
 from middlewares.user import get_current_user
-from daos.user import User 
+from daos.user import UserDB 
 from schemas.profile_schema import UserProfileResponse
 
 router = APIRouter()
 security = HTTPBearer()
 
-user = User()
+user = UserDB()
 
 @router.get('/profile',response_model=UserProfileResponse)
 def get_profile(current_user: dict = Depends(get_current_user)):
@@ -24,5 +23,8 @@ def get_profile(current_user: dict = Depends(get_current_user)):
     # }
     return UserProfileResponse(
         username=user_exist.get("username"),
-        email=user_exist.get("email")
+        email=user_exist.get("email"),
+        general_agents=user_exist.get("general_agents"),
+        research_agents=user_exist.get("research_agents"),
+        shopping_agents=user_exist.get("shopping_agents")
     )

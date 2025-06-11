@@ -1,17 +1,5 @@
 import requests
 
-def multiplication(a: float, b: float) -> float:
-    """
-    Performs multiplication on two numbers.
-    Args:
-        a (float): First number.
-        b (float): Second number.
-    Returns:
-        float: Result of multiplying a and b.
-    """
-    print(f"Multiplying {a} and {b}")
-    return a * b
-
 def get_weather(city: str, api_key: str="14cbb208f9ee459893063333250806") -> dict:
     """
     Fetches weather data for a given city using WeatherAPI.com.
