@@ -30,7 +30,16 @@ class AgentDB:
             )
 
         return agent_id
-
+    
+    def update_agent(self, agent_id: str, agent_name: str, agent_type: str, user_id: str) -> bool:
+        # Find the agent by its ID and the user_id to ensure ownership
+        result = self.agent_collection.update_one(
+            {"_id": ObjectId(agent_id), "user_id": user_id},
+            {"$set": {"agent_name": agent_name, "agent_type": agent_type}}
+        )
+        # Return True if at least one document was modified
+        return result.modified_count > 0
+    
     def get_agent_by_id(self, agent_id: str):
         agent = self.agent_collection.find_one({"_id": ObjectId(agent_id)})
         if agent:

@@ -7,8 +7,6 @@ import axios from 'axios';
 
 const TvaraNavbar = ({
     isAuthenticated,
-    sidebarOpen,
-    onToggleSidebar,
     onLogout
 }) => {
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
