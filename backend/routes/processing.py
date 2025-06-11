@@ -52,7 +52,7 @@ async def process(websocket: WebSocket, agent_type: str = Path(..., regex="^(gen
 
                     await speech_ai_pipeline(
                         recognizer, llm_model, tts_engine, websocket, 
-                        message["bytes"], auth_token, user_id
+                        message["bytes"], auth_token, user_id, agent_type
                     )
                 
             except WebSocketDisconnect:
