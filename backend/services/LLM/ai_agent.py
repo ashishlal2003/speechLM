@@ -1,9 +1,10 @@
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from langgraph.graph import START, StateGraph, MessagesState
+from langgraph.graph import START, END, StateGraph, MessagesState
 from langgraph.prebuilt import tools_condition, ToolNode
 from services.LLM.prompts.general_prompt import general_system_prompt
 from services.LLM.prompts.research_prompt import research_system_prompt
 from services.LLM.prompts.shopping_prompt import shopping_system_prompt
+from services.LLM.prompts.judge_prompt import judge_system_prompt
 from services.LLM.tools import web_search, get_weather
 
 default_tools = [web_search, get_weather]
@@ -26,23 +27,43 @@ def build_graph(model, agent_type):
 
     sys_msg = SystemMessage(content=system_prompt)
 
-    def assistant(state: MessagesState):
+    def researcher(state: MessagesState):
         return {
             "messages": [model.invoke([sys_msg] + state["messages"])]
         }
-    
-    builder = StateGraph(MessagesState)
-    builder.add_node("assistant", assistant)
 
-    if tools:
-        builder.add_node("tools", ToolNode(tools))
-        builder.add_edge(START, "assistant")
-        builder.add_conditional_edges("assistant", tools_condition)
-        builder.add_edge("tools", "assistant")
+    def judge(state: MessagesState):
+        researcher_output = state["messages"][-1]
+        return {
+            "messages": [model.invoke([judge_system_prompt, researcher_output])]
+        }
+
+    builder = StateGraph(MessagesState)
+
+    if agent_type == "research":
+        builder.add_node("researcher", researcher)
+        builder.add_node("judge", judge)
+
+        builder.add_edge(START, "researcher")
+        builder.add_edge("researcher", "judge")
+        builder.add_edge("judge", END)
+
+        if tools:
+            builder.add_node("tools", ToolNode(tools))
+            builder.add_conditional_edges("researcher", tools_condition)
+            builder.add_edge("tools", "researcher")
     else:
-        builder.set_entry_point("assistant")
+        builder.add_node("assistant", researcher)
+        if tools:
+            builder.add_node("tools", ToolNode(tools))
+            builder.add_edge(START, "assistant")
+            builder.add_conditional_edges("assistant", tools_condition)
+            builder.add_edge("tools", "assistant")
+        else:
+            builder.set_entry_point("assistant")
 
     return builder.compile()
+
     
 def ai_response(model, user_input, history_db, user_id, agent_type="general"):
     past_messages = history_db.get_conversation(user_id)
