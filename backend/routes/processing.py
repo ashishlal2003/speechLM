@@ -15,12 +15,11 @@ recognizer = SpeechRecognizer.get_instance()
 tts_engine = TTS_Engine.get_instance()
     
 @router.websocket("/ws/processing")
-async def process(websocket: WebSocket, agent_type: str = Path(..., regex="^(general|research|shopping)$")):
+async def process(websocket: WebSocket, agent_id: str, agent_type: str = Path(..., regex="^(general|research|shopping)$")):
     await websocket.accept()
 
     query_params = websocket.query_params
     auth_token = query_params.get("token")
-    user_id = query_params.get("userId", "default_user")
 
     try:
         module_name = f"services.LLM.models.{agent_type}_model"
@@ -52,7 +51,7 @@ async def process(websocket: WebSocket, agent_type: str = Path(..., regex="^(gen
 
                     await speech_ai_pipeline(
                         recognizer, llm_model, tts_engine, websocket, 
-                        message["bytes"], auth_token, user_id, agent_type
+                        message["bytes"], auth_token, agent_id
                     )
                 
             except WebSocketDisconnect:

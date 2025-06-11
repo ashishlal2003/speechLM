@@ -65,8 +65,13 @@ def build_graph(model, agent_type):
     return builder.compile()
 
     
-def ai_response(model, user_input, history_db, user_id, agent_type="general"):
-    past_messages = history_db.get_conversation(user_id)
+def ai_response(model, user_input, history_db, agent_id):
+    past_messages = history_db.get_conversation(agent_id)
+    agent_type = history_db.get_agent_by_id(agent_id).get("agent_type", "general")
+    
+    if agent_type not in system_prompts:
+        raise ValueError(f"Unsupported agent type: {agent_type}")
+    
     state = {"messages": []}
     for message in past_messages:
         state["messages"].append(HumanMessage(content=message["user_input"]))
@@ -78,6 +83,6 @@ def ai_response(model, user_input, history_db, user_id, agent_type="general"):
     output_state = graph.invoke(state)
 
     assistant_reply = output_state["messages"][-1].content
-    history_db.save_message(user_id, user_input, assistant_reply)
+    history_db.save_message(agent_id, user_input, assistant_reply)
 
     return assistant_reply
