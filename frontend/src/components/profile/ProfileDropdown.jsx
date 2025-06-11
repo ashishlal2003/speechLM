@@ -1,11 +1,19 @@
-import { LogOut } from 'lucide-react';
+import { LogOut, LayoutDashboard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const ProfileDropdown = ({ setShowProfileDropdown, onLogout, userData }) => {
+
+    const navigate = useNavigate();
 
     const handleLogout = () => {
         setShowProfileDropdown(false);
         onLogout();
     };
+
+    const handleDashboardClick = () => {
+        setShowProfileDropdown(false);
+        navigate('/dashboard');
+    }
 
 
     return (
@@ -19,6 +27,13 @@ const ProfileDropdown = ({ setShowProfileDropdown, onLogout, userData }) => {
                     {userData?.email}
                 </p>
             </div>
+            <button
+                onClick={handleDashboardClick}
+                className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+            > 
+                <LayoutDashboard className="w-4 h-4 mr-2" />
+                Dashboard
+            </button>
             <button
                 onClick={handleLogout}
                 className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"

@@ -5,8 +5,10 @@ import withAuthModal from "./hoc/withAuthModal"
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
 import OTPVerification from './components/auth/OTPVerification';
+import Dashboard from './pages/Dashboard';
 
 const AuthenticatedVoiceRecorderAppRoute = withAuthModal(VoiceRecorderApp);
+const AuthenticatedDashboardRoute = withAuthModal(Dashboard);
 
 function App() {
   return (
@@ -18,6 +20,7 @@ function App() {
         <Route path='/login' element={<Login/>}/>
         <Route path='/register' element={<Signup/>}/>
         <Route path="/verify-otp" element={<OTPVerification />} />
+        <Route path='/dashboard' element={<AuthenticatedDashboardRoute/>}/>
       </Routes>
     </BrowserRouter>
 

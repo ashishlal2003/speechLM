@@ -26,7 +26,7 @@ const Login = () => {
     try {
       const response = await axios.post('http://localhost:8000/login', payload);
       localStorage.setItem('token', response.data.access_token);
-      navigate('/tvara');
+      navigate('/dashboard');
     } catch (error) {
       // Using a more user-friendly message for errors
       console.error("Login failed:", error);
