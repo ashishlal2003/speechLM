@@ -74,4 +74,29 @@ class AgentDB:
         return []
 
     def delete_agent(self, agent_id: str):
-        self.agent_collection.delete_one({"_id": ObjectId(agent_id)})
+        agent = self.agent_collection.find_one({"_id": ObjectId(agent_id)})
+        if not agent:
+            return False
+        
+        user_id = agent.get("user_id")
+        agent_type = agent.get("agent_type")
+
+        agent_field_map = {
+            "general": "general_agents",
+            "research": "research_agents",
+            "shopping": "shopping_agents"
+        }
+
+        field_to_update = agent_field_map.get(agent_type)
+
+        result = self.agent_collection.delete_one({"_id": ObjectId(agent_id)})
+
+        if result.deleted_count > 0 and field_to_update:
+            self.user_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$pull": {field_to_update: agent_id}}
+            )
+            return True
+
+        return False
+        
