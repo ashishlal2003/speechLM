@@ -1,7 +1,7 @@
 from utils.audio_conversion import float32_to_int16, pcm_to_wav
 import os
 from config import AUDIO_FOLDER
-from backend.services.LLM.ai_agent import ai_response
+from services.LLM.ai_agent import ai_response
 import uuid
 import json
 from services.UserHistory.factory import get_user_history_plugin

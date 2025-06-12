@@ -15,12 +15,16 @@ recognizer = SpeechRecognizer.get_instance()
 tts_engine = TTS_Engine.get_instance()
     
 @router.websocket("/ws/processing")
-async def process(websocket: WebSocket, agent_id: str, agent_type: str = Path(..., regex="^(general|research|shopping)$")):
+async def process(websocket: WebSocket):
     await websocket.accept()
 
     query_params = websocket.query_params
     auth_token = query_params.get("token")
-
+    agent_id = query_params.get("agent_id")
+    agent_type = query_params.get("agent_type")
+    
+    print(f"received agent_id: {agent_id}, agent_type: {agent_type}, auth_token: {auth_token}")
+    
     try:
         module_name = f"services.LLM.models.{agent_type}_model"
         function_name = f"{agent_type}_model"

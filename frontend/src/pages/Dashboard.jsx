@@ -13,10 +13,14 @@ import {
 import CreateAgentPopup from '../components/dashboard/CreateAgentPopup';
 import DeleteConfirmationPopup from '../components/dashboard/DeleteConfirmationPopup';
 import { agentService } from '../services/agentService';
+import {useNavigate} from 'react-router-dom';
 
 const Dashboard = () => {
-  const handleNavigate = (type) => {
-    console.log('Navigate to agent', type);
+  const navigate = useNavigate();
+  
+  const handleNavigate = (agentType, agentId) => {
+    console.log('Navigate to agent', agentId);
+    navigate(`/tvara/${agentType}/${agentId}`);
   };
 
   const [agents, setAgents] = useState([]);
@@ -72,7 +76,7 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await agentService.getAgents();
+      const response = await agentService.getAgents();      
       setAgents(Array.isArray(response) ? response : []);
     } catch (error) {
       console.error('Error fetching agents:', error);
@@ -392,10 +396,10 @@ const Dashboard = () => {
                       </h3>
                       <p className="text-sm text-gray-500 capitalize mb-4">
                         {agent.category || agent.agent_type}
-                      </p>
+                      </p>                      
 
                       <button
-                        onClick={handleNavigate(agent.category || agent.agent_type)}
+                        onClick={() => handleNavigate(agent.agent_type, agent._id)}
                         className="w-full bg-gray-50 hover:bg-gray-100 text-gray-700 py-2 px-4 rounded-lg transition-colors text-sm font-medium"
                       >
                         Open Agent
