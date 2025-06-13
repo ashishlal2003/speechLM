@@ -1,88 +1,22 @@
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from langgraph.graph import START, END, StateGraph, MessagesState
-from langgraph.prebuilt import tools_condition, ToolNode
-from services.LLM.prompts.general_prompt import general_system_prompt
-from services.LLM.prompts.research_prompt import research_system_prompt
-from services.LLM.prompts.shopping_prompt import shopping_system_prompt
-from services.LLM.prompts.judge_prompt import judge_system_prompt
-from services.LLM.tools import web_search, get_weather
+import re
 
-default_tools = [web_search, get_weather]
+def remove_markdown(text):
+    return re.sub(r'[*_`~#>-]', '', text)
 
-system_prompts = {
-    "general": general_system_prompt,
-    "research": research_system_prompt,
-    "shopping": shopping_system_prompt
-}
-
-agent_tools = {
-    "general": default_tools,
-    "research": [web_search],
-    "shopping": [web_search]
-}
-
-def build_graph(model, agent_type):
-    system_prompt = system_prompts.get(agent_type)
-    tools = agent_tools.get(agent_type)
-
-    sys_msg = SystemMessage(content=system_prompt)
-
-    def researcher(state: MessagesState):
-        return {
-            "messages": [model.invoke([sys_msg] + state["messages"])]
+def ai_response(model, user_input, history_db, agent_id, agent_type):
+    if agent_type == "shopping":
+        message_payload = {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": f"History: {history_db.get_conversation(agent_id)}\nUser Input: {user_input}"
+                }
+            ]
         }
 
-    def judge(state: MessagesState):
-        researcher_output = state["messages"][-1]
-        return {
-            "messages": [model.invoke([judge_system_prompt, researcher_output])]
-        }
+        result = model.invoke(message_payload)
+        assistant_reply = result["messages"][-1].content
 
-    builder = StateGraph(MessagesState)
+        history_db.save_message(agent_id, user_input, assistant_reply)
 
-    if agent_type == "research":
-        builder.add_node("researcher", researcher)
-        builder.add_node("judge", judge)
-
-        builder.add_edge(START, "researcher")
-        builder.add_edge("researcher", "judge")
-        builder.add_edge("judge", END)
-
-        if tools:
-            builder.add_node("tools", ToolNode(tools))
-            builder.add_conditional_edges("researcher", tools_condition)
-            builder.add_edge("tools", "researcher")
-    else:
-        builder.add_node("assistant", researcher)
-        if tools:
-            builder.add_node("tools", ToolNode(tools))
-            builder.add_edge(START, "assistant")
-            builder.add_conditional_edges("assistant", tools_condition)
-            builder.add_edge("tools", "assistant")
-        else:
-            builder.set_entry_point("assistant")
-
-    return builder.compile()
-
-    
-def ai_response(model, user_input, history_db, agent_id):
-    past_messages = history_db.get_conversation(agent_id)
-    agent_type = history_db.get_agent_by_id(agent_id).get("agent_type", "general")
-    
-    if agent_type not in system_prompts:
-        raise ValueError(f"Unsupported agent type: {agent_type}")
-    
-    state = {"messages": []}
-    for message in past_messages:
-        state["messages"].append(HumanMessage(content=message["user_input"]))
-        state["messages"].append(AIMessage(content=message["ai_response"]))
-
-    state["messages"].append(HumanMessage(content=user_input))
-
-    graph = build_graph(model, agent_type)
-    output_state = graph.invoke(state)
-
-    assistant_reply = output_state["messages"][-1].content
-    history_db.save_message(agent_id, user_input, assistant_reply)
-
-    return assistant_reply
+        return remove_markdown(assistant_reply)

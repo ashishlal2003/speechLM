@@ -323,7 +323,6 @@ function Tvara(props) {
   };
 
   const location = useLocation();
-  console.log(location.pathname);
   
   useEffect(() => {
     if (location.pathname !== "/tvara") {

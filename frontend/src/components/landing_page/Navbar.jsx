@@ -51,7 +51,7 @@ export default function Navbar({ scrolled }) {
                         </a> */}
                     </div>
 
-                    <Link to="/tvara">
+                    <Link to="/dashboard">
                         <button className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-green-500 text-white px-4 py-2 rounded-xl hover:shadow-lg transition-all">
                             <span>Try Now</span>
                             <Mic className="h-4 w-4" />

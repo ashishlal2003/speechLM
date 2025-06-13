@@ -1,6 +1,8 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 import google.generativeai as genai
 from services.LLM.tools import web_search
+from langgraph.prebuilt import create_react_agent
+from services.LLM.prompts.shopping_prompt import shopping_system_prompt
 
 def shopping_model(api_key):
     genai.configure(api_key=api_key)
@@ -9,7 +11,9 @@ def shopping_model(api_key):
         google_api_key=api_key,
     )
 
-    tools = [web_search]
-
-    llm_with_tools = llm.bind_tools(tools)
-    return llm_with_tools
+    return create_react_agent(
+        model=llm,
+        tools=[web_search],
+        name="shopping",
+        prompt=shopping_system_prompt
+    )

@@ -24,7 +24,7 @@ export default function HeroSection() {
             Indian languages coming soon — built for Bharat and beyond.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Link to="/tvara">
+            <Link to="/dashboard">
               <button className="bg-gradient-to-r from-orange-500 to-green-500 text-white px-8 py-3 rounded-full flex items-center justify-center space-x-2 hover:shadow-lg transform hover:-translate-y-1 transition-all">
                 <span>Try Now</span>
                 <PlayCircle className="h-5 w-5" />

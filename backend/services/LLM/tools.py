@@ -30,11 +30,12 @@ def web_search(query: str, api_key: str = "tvly-dev-1PIqiS9vNROP6ltlOuj3RoHQwWuE
 
     Args:
         query (str): The search query.
-        api_key (str): Your Tavily API key.
+        api_key (str): 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.
 
     Returns:
         dict: JSON response with search results (snippets, URLs, etc.).
     """
+    print("WEB SEARCH TOOL CALLED")
     url = "https://api.tavily.com/search"
     headers = {
         "Authorization": f"Bearer {api_key}",
