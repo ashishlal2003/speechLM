@@ -6,7 +6,7 @@ import uuid
 import json
 from services.UserHistory.factory import get_user_history_plugin
 
-async def speech_ai_pipeline(recognizer, llm_model, tts_engine, websocket, binary_audio, auth_token, agent_id, agent_type):
+async def speech_ai_pipeline(recognizer, llm_model, tts_engine, websocket, binary_audio, auth_token, agent_id):
     
     try:
         history_db = get_user_history_plugin(auth_token)
@@ -35,7 +35,7 @@ async def speech_ai_pipeline(recognizer, llm_model, tts_engine, websocket, binar
             await websocket.send_text(error_message)
         return
     
-    response = ai_response(llm_model, transcription, history_db, agent_id, agent_type)
+    response = ai_response(llm_model, transcription, history_db, agent_id)
 
     try:
         sentences = tts_engine._split_into_sentences(response)
