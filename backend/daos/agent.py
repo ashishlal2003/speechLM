@@ -19,7 +19,6 @@ class AgentDB:
         agent_field_map = {
             "general": "general_agents",
             "research": "research_agents",
-            "shopping": "shopping_agents"
         }
 
         field_to_update = agent_field_map.get(agent_type.lower())
@@ -84,7 +83,6 @@ class AgentDB:
         agent_field_map = {
             "general": "general_agents",
             "research": "research_agents",
-            "shopping": "shopping_agents"
         }
 
         field_to_update = agent_field_map.get(agent_type)

@@ -3,7 +3,6 @@ import {
   Plus,
   Bot,
   Search,
-  ShoppingCart,
   Edit3,
   Trash2,
   X,
@@ -54,13 +53,6 @@ const Dashboard = () => {
       color: 'from-green-500 to-teal-600',
       description: 'Specialized in research and analysis'
     },
-    {
-      id: 'shopping',
-      name: 'Shopping',
-      icon: ShoppingCart,
-      color: 'from-orange-500 to-red-600',
-      description: 'Your personal shopping assistant'
-    }
   ];
 
   const filterTabs = [

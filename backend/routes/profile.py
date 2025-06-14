@@ -26,5 +26,4 @@ def get_profile(current_user: dict = Depends(get_current_user)):
         email=user_exist.get("email"),
         general_agents=user_exist.get("general_agents"),
         research_agents=user_exist.get("research_agents"),
-        shopping_agents=user_exist.get("shopping_agents")
     )

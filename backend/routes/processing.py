@@ -66,7 +66,7 @@ async def process(websocket: WebSocket):
                     print(f"[Audio Received] Processing audio with pipeline")
                     await speech_ai_pipeline(
                         recognizer, llm_model, tts_engine, websocket, 
-                        message["bytes"], auth_token, agent_id, agent_type
+                        message["bytes"], auth_token, agent_id
                     )
                     print(f"[Pipeline Completed] Audio processed")
 
