@@ -18,4 +18,14 @@ def ai_response(model, user_input, history_db, agent_id):
 
     history_db.save_message(agent_id, user_input, assistant_reply)
 
-    return remove_markdown(assistant_reply)
+    if "Here is a comprehensive plan for your research paper:" in assistant_reply:
+        return {
+            "message": assistant_reply,
+            "summary": "Here's your research plan on the sidebar.",
+        }
+
+    else:
+        return {
+            "message": remove_markdown(assistant_reply),
+            "summary": None,
+        }

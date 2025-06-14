@@ -4,6 +4,7 @@ import { Menu, X, User } from 'lucide-react';
 import BrandLogo from '../elements/BrandLogo';
 import ProfileDropdown from '../profile/ProfileDropdown';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const TvaraNavbar = ({
     isAuthenticated,
@@ -71,9 +72,11 @@ const TvaraNavbar = ({
 
                     {/* Center - Logo/Brand */}
                     <div className="flex-1 flex justify-begin ml-4">
-                        <BrandLogo>
-                            Tvara
-                        </BrandLogo>
+                        <Link to="/">
+                            <BrandLogo>
+                                Tvara
+                            </BrandLogo>
+                        </Link>
                     </div>
 
                     <div className="flex items-center space-x-3">
