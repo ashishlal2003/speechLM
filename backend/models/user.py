@@ -10,7 +10,6 @@ class User:
         self.created_at = datetime.now()
         self.general_agents = []
         self.research_agents = []
-        self.shopping_agents = []
 
         # --- New attributes for verification ---
         self.is_verified = False
@@ -28,7 +27,6 @@ class User:
             "created_at": self.created_at,
             "general_agents": self.general_agents,
             "research_agents": self.research_agents,
-            "shopping_agents": self.shopping_agents,
             "is_verified": self.is_verified,
             "otp": self.otp,
             "otp_expiry": self.otp_expiry.isoformat() if self.otp_expiry else None
