@@ -13,7 +13,7 @@ function CTA() {
           coming soon. Tvara is your AI friend and agent, ready to understand,
           act, and grow with you.
         </p>
-        <Link to="/tvara">
+        <Link to="/dashboard">
           <button className="bg-gradient-to-r from-orange-500 to-green-500 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all">
             Try Now
           </button>

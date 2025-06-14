@@ -1,17 +1,5 @@
 import requests
 
-def multiplication(a: float, b: float) -> float:
-    """
-    Performs multiplication on two numbers.
-    Args:
-        a (float): First number.
-        b (float): Second number.
-    Returns:
-        float: Result of multiplying a and b.
-    """
-    print(f"Multiplying {a} and {b}")
-    return a * b
-
 def get_weather(city: str, api_key: str="14cbb208f9ee459893063333250806") -> dict:
     """
     Fetches weather data for a given city using WeatherAPI.com.
@@ -42,11 +30,12 @@ def web_search(query: str, api_key: str = "tvly-dev-1PIqiS9vNROP6ltlOuj3RoHQwWuE
 
     Args:
         query (str): The search query.
-        api_key (str): Your Tavily API key.
+        api_key (str): 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.
 
     Returns:
         dict: JSON response with search results (snippets, URLs, etc.).
     """
+    print("WEB SEARCH TOOL CALLED")
     url = "https://api.tavily.com/search"
     headers = {
         "Authorization": f"Bearer {api_key}",

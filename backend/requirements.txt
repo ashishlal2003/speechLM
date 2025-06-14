@@ -21,3 +21,4 @@ langchain-google-genai
 langgraph
 langchain_core
 langchain
+langgraph_supervisor

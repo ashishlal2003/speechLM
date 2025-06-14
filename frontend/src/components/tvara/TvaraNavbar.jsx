@@ -7,8 +7,6 @@ import axios from 'axios';
 
 const TvaraNavbar = ({
     isAuthenticated,
-    sidebarOpen,
-    onToggleSidebar,
     onLogout
 }) => {
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -60,7 +58,7 @@ const TvaraNavbar = ({
             <div className="px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     {/* Left side - Menu toggle */}
-                    <button
+                    {/* <button
                         onClick={onToggleSidebar}
                         className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
                     >
@@ -69,7 +67,7 @@ const TvaraNavbar = ({
                         ) : (
                             <Menu className="w-6 h-6 text-gray-600" />
                         )}
-                    </button>
+                    </button> */}
 
                     {/* Center - Logo/Brand */}
                     <div className="flex-1 flex justify-begin ml-4">
