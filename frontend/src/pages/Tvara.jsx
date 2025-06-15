@@ -6,7 +6,7 @@ import Button from "../components/elements/Button";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import ReactMarkdown from "react-markdown";
-import { X, PanelRightOpen } from "lucide-react";
+import { X, PanelRightOpen, Copy } from "lucide-react";
 
 // Modified AnimatedSphere to take amplitude as a prop
 function AnimatedSphere({ amplitude }) {
@@ -382,6 +382,14 @@ function Tvara(props) {
     stopRecordingResources();
   };
 
+  const handleCopy = () => {
+    if (sidebarMessage) {
+      navigator.clipboard.writeText(sidebarMessage).then(() => {
+        alert("Copied to clipboard!");
+      });
+    }
+  };
+
   return (
     <div className="flex h-screen w-screen overflow-hidden mt-16">
       {/* Canvas container - shrinks when sidebar is open */}
@@ -426,17 +434,71 @@ function Tvara(props) {
       {isSidebarOpen && sidebarMessage && (
         <div className="w-1/4 h-full bg-gray-100 text-black p-4 flex flex-col z-30 overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">AI Suggestions</h3>
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="text-black hover:text-red-500"
-              title="Close Sidebar"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <h3 className="text-lg font-semibold">Tvara says...</h3>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => handleCopy()}
+                className="text-black hover:text-blue-500"
+                title="Copy"
+              >
+                <Copy className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setIsSidebarOpen(false)}
+                className="text-black hover:text-red-500"
+                title="Close Sidebar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
           <div className="whitespace-pre-wrap text-sm leading-relaxed">
-            <ReactMarkdown>{sidebarMessage}</ReactMarkdown>
+            <ReactMarkdown
+              components={{
+                a: ({ node, ...props }) => (
+                  <a
+                    {...props}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline hover:text-blue-800 transition"
+                  />
+                ),
+                code: ({ inline, className, children, ...props }) => {
+                  return inline ? (
+                    <code className="bg-gray-200 rounded px-1 py-0.5 font-mono text-sm">
+                      {children}
+                    </code>
+                  ) : (
+                    <pre className="bg-black text-white p-3 rounded-md overflow-x-auto text-sm">
+                      <code className={className} {...props}>
+                        {children}
+                      </code>
+                    </pre>
+                  );
+                },
+                ul: ({ children }) => (
+                  <ul className="list-disc list-inside space-y-1">
+                    {children}
+                  </ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="list-decimal list-inside space-y-1">
+                    {children}
+                  </ol>
+                ),
+                h1: ({ children }) => (
+                  <h1 className="text-xl font-bold mt-4 mb-2">{children}</h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="text-lg font-semibold mt-3 mb-1">
+                    {children}
+                  </h2>
+                ),
+                p: ({ children }) => <p className="mb-2">{children}</p>,
+              }}
+            >
+              {sidebarMessage}
+            </ReactMarkdown>
           </div>
         </div>
       )}

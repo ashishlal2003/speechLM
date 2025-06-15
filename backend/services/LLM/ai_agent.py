@@ -18,10 +18,10 @@ def ai_response(model, user_input, history_db, agent_id):
 
     history_db.save_message(agent_id, user_input, assistant_reply)
 
-    if "Here is a comprehensive plan for your research paper:" in assistant_reply:
+    if "Here is your result:" in assistant_reply:
         return {
             "message": assistant_reply,
-            "summary": "Here's your research plan on the sidebar.",
+            "summary": "Here's your result on the sidebar.",
         }
 
     else:
