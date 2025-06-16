@@ -8,6 +8,8 @@ import {
   X,
   Sparkles,
   Brain,
+  Gavel,
+  HeartPulse
 } from 'lucide-react';
 import CreateAgentPopup from '../components/dashboard/CreateAgentPopup';
 import DeleteConfirmationPopup from '../components/dashboard/DeleteConfirmationPopup';
@@ -50,6 +52,20 @@ const Dashboard = () => {
       id: 'research',
       name: 'Research',
       icon: Brain,
+      color: 'from-green-500 to-teal-600',
+      description: 'Specialized in research and analysis'
+    },
+    {
+      id: 'legal',
+      name: 'Legal',
+      icon: Gavel,
+      color: 'from-green-500 to-teal-600',
+      description: 'Specialized in support'
+    },
+    {
+      id: 'medical',
+      name: 'Medical',
+      icon: HeartPulse,
       color: 'from-green-500 to-teal-600',
       description: 'Specialized in research and analysis'
     },
@@ -213,10 +229,10 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-            Your Personalized AI Dashboard
+            Pod Dashboard
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Create and manage your AI agents to streamline your workflow
+            Create and manage your Domain Pods to streamline your workflow
           </p>
         </div>
       </div>
@@ -252,7 +268,7 @@ const Dashboard = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search your agents by name..."
+                  placeholder="Search your pods by name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white"
@@ -263,15 +279,15 @@ const Dashboard = () => {
                 className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 whitespace-nowrap"
               >
                 <Plus className="w-5 h-5" />
-                Add New Agent
+                Add New Pod
               </button>
             </div>
             {/* Results Summary */}
             <div className="my-4">
               <p className="text-gray-600">
                 {filteredAgents.length === agents.length
-                  ? `Showing all ${agents.length} agents`
-                  : `Showing ${filteredAgents.length} of ${agents.length} agents`
+                  ? `Showing all ${agents.length} Pods`
+                  : `Showing ${filteredAgents.length} of ${agents.length} Pods`
                 }
               </p>
             </div>
@@ -285,7 +301,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading your agents...</p>
+              <p className="text-gray-600">Loading your Pods...</p>
             </div>
           </div>
         )}
@@ -294,7 +310,7 @@ const Dashboard = () => {
         {!loading && agents.length === 0 && (
           <div className="py-12">
             <h2 className="text-2xl font-semibold text-gray-800 text-center mb-8">
-              Choose a category to create your first agent
+              Choose a category to create your first Pod
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {categories.map((category) => {
@@ -330,7 +346,7 @@ const Dashboard = () => {
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Search className="w-8 h-8 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">No agents found</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">No Pods found</h3>
                 <p className="text-gray-600 mb-6">
                   {searchTerm
                     ? `No agents match "${searchTerm}"`
@@ -394,7 +410,7 @@ const Dashboard = () => {
                         onClick={() => handleNavigate(agent.agent_type, agent._id)}
                         className="w-full bg-gray-50 hover:bg-gray-100 text-gray-700 py-2 px-4 rounded-lg transition-colors text-sm font-medium"
                       >
-                        Open Agent
+                        Open Pod
                       </button>
                     </div>
                   );

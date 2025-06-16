@@ -42,6 +42,9 @@ def research_model(api_key):
             "5. Potential challenges and how to overcome them "
             "6. A structured timeline for completing the research paper"
             "Use these tools only if needed. Dont let the end user know about these two experts. Each of the experts have a web_search tool as well. Do not answer questions outside your said work"
+            "If the user follows up regarding a doubt or clarification, take it up as it is, you dont need to run through the experts again."
+            "Your researcher_agent obviously reads the latest research paper to come up with novel ideas. Hence in your final response to the user, at the end add a Sources section with the latest research papers that were read by the researcher_agent along with their links and a brief abstract of each paper."
+            "In your final response to the user, strictly start by saying 'Here is your result:'"
         )
     ).compile()
 

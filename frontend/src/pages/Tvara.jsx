@@ -5,6 +5,8 @@ import "../index.css";
 import Button from "../components/elements/Button";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import ReactMarkdown from "react-markdown";
+import { X, PanelRightOpen, Copy } from "lucide-react";
 
 // Modified AnimatedSphere to take amplitude as a prop
 function AnimatedSphere({ amplitude }) {
@@ -20,10 +22,7 @@ function AnimatedSphere({ amplitude }) {
 
   return (
     <Sphere args={[1.5, 128, 128]} ref={meshRef}>
-      <MeshDistortMaterial
-        color="#eb7067"
-        speed={2}
-      />
+      <MeshDistortMaterial color="#eb7067" speed={2} />
     </Sphere>
   );
 }
@@ -32,6 +31,10 @@ function Tvara(props) {
   const [socket, setSocket] = useState(null);
   const [amplitude, setAmplitude] = useState(0);
   const mediaRecorderRef = useRef(null);
+
+  const [aiSummary, setAiSummary] = useState(null);
+  const [sidebarMessage, setSidebarMessage] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Audio playback management
   const audioQueueRef = useRef([]);
@@ -49,7 +52,6 @@ function Tvara(props) {
   const navigate = useNavigate();
 
   const { agent_type, agent_id } = useParams();
-  
 
   // Constants for smooth audio playback
   const MIN_BUFFER_SIZE = 3; // Minimum chunks to buffer before starting playback
@@ -59,14 +61,16 @@ function Tvara(props) {
     // AudioContext for playback
     audioContextRef.current = new (window.AudioContext ||
       window.webkitAudioContext)();
-    
+
     const token = localStorage.getItem("token");
     const userId = token ? jwtDecode(token).sub : "default_user";
-    
+
     const ws = new WebSocket(
       `ws://localhost:8000/ws/processing?token=${encodeURIComponent(
         token
-      )}&userId=${encodeURIComponent(userId)}&agent_type=${agent_type}&agent_id=${agent_id}`
+      )}&userId=${encodeURIComponent(
+        userId
+      )}&agent_type=${agent_type}&agent_id=${agent_id}`
     );
     setSocket(ws);
     ws.binaryType = "arraybuffer";
@@ -85,6 +89,18 @@ function Tvara(props) {
           }
         } else if (data.type === "error") {
           console.error("[Socket] Error:", data.message);
+        } else if (data.type === "ai_response") {
+          console.log("[Socket] Received AI response");
+
+          if (data.summary) {
+            setAiSummary(data.summary);
+            setSidebarMessage(data.message);
+            setIsSidebarOpen(true);
+          } else {
+            setAiSummary(data.message);
+            setSidebarMessage(null);
+            setIsSidebarOpen(false);
+          }
         }
       } else {
         const audioData = event.data;
@@ -93,10 +109,13 @@ function Tvara(props) {
             audioData.slice(0)
           );
           audioQueueRef.current.push(audioBuffer);
-          
+
           // Start playback when we have enough chunks buffered OR when complete
-          if (!isPlayingRef.current && 
-              (audioQueueRef.current.length >= MIN_BUFFER_SIZE || !bufferingRef.current)) {
+          if (
+            !isPlayingRef.current &&
+            (audioQueueRef.current.length >= MIN_BUFFER_SIZE ||
+              !bufferingRef.current)
+          ) {
             playAudioQueue();
           }
         } catch (e) {
@@ -128,9 +147,9 @@ function Tvara(props) {
     if (isPlayingRef.current) return; // Prevent multiple simultaneous playbacks
 
     isPlayingRef.current = true;
-    
+
     // Ensure audio context is running
-    if (audioContextRef.current.state === 'suspended') {
+    if (audioContextRef.current.state === "suspended") {
       await audioContextRef.current.resume();
     }
 
@@ -157,14 +176,16 @@ function Tvara(props) {
       analyserNode.connect(audioContextRef.current.destination);
 
       const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
-      
+
       const updateAmplitude = () => {
         if (!isPlayingRef.current) {
           setAmplitude(0);
           return;
         }
         analyserNode.getByteTimeDomainData(dataArray);
-        const norm = dataArray.reduce((a, b) => a + Math.abs(b - 128), 0) / dataArray.length;
+        const norm =
+          dataArray.reduce((a, b) => a + Math.abs(b - 128), 0) /
+          dataArray.length;
         setAmplitude(norm / 128);
         requestAnimationFrame(updateAmplitude);
       };
@@ -172,7 +193,7 @@ function Tvara(props) {
       // Schedule playback for smooth continuation
       const currentTime = audioContextRef.current.currentTime;
       const startTime = Math.max(currentTime, nextScheduledTimeRef.current);
-      
+
       sourceNode.start(startTime);
       nextScheduledTimeRef.current = startTime + buffer.duration;
 
@@ -201,7 +222,7 @@ function Tvara(props) {
       }
       currentSourceRef.current = null;
     }
-    
+
     audioQueueRef.current = [];
     isPlayingRef.current = false;
     nextScheduledTimeRef.current = 0;
@@ -210,7 +231,7 @@ function Tvara(props) {
 
   const stopRecordingResources = () => {
     stopAllAudio(); // Stop any playing audio
-    
+
     if (recordingProcessorRef.current) {
       recordingProcessorRef.current.disconnect();
       recordingProcessorRef.current = null;
@@ -239,13 +260,13 @@ function Tvara(props) {
     setAmplitude(0);
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: 16000
-        } 
+          sampleRate: 16000,
+        },
       });
       recordingStreamRef.current = stream;
 
@@ -323,7 +344,7 @@ function Tvara(props) {
   };
 
   const location = useLocation();
-  
+
   useEffect(() => {
     if (location.pathname !== "/tvara") {
       handleLogout();
@@ -361,22 +382,126 @@ function Tvara(props) {
     stopRecordingResources();
   };
 
+  const handleCopy = () => {
+    if (sidebarMessage) {
+      navigator.clipboard.writeText(sidebarMessage).then(() => {
+        alert("Copied to clipboard!");
+      });
+    }
+  };
+
   return (
-    <div className="Tvara">
-      <Canvas
-        camera={{ position: [0, 0, 10], fov: 40 }}
-        style={{ height: "100vh", width: "100%" }}
+    <div className="flex h-screen w-screen overflow-hidden mt-16">
+      {/* Canvas container - shrinks when sidebar is open */}
+      <div
+        className={`relative transition-all bottom-20 duration-300 ease-in-out ${
+          isSidebarOpen ? "w-3/4" : "w-full"
+        }`}
       >
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
-        <AnimatedSphere amplitude={amplitude} />
-        <OrbitControls enableZoom={true} />
-      </Canvas>
-      <div className="overlay">
-        <button onClick={startRecording} className="speak-button">
-          🎤 Speak
-        </button>
+        <Canvas
+          camera={{ position: [0, 0, 10], fov: 40 }}
+          style={{ height: "100vh", width: "100%" }}
+        >
+          <ambientLight intensity={0.5} />
+          <pointLight position={[10, 10, 10]} intensity={1} />
+          <AnimatedSphere amplitude={amplitude} />
+          <OrbitControls enableZoom={true} />
+        </Canvas>
+
+        {/* Floating Speak Button */}
+        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-20">
+          <button
+            onClick={startRecording}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg"
+          >
+            🎤 Speak
+          </button>
+        </div>
+
+        {/* Open Sidebar Button (only when closed) */}
+        {!isSidebarOpen && sidebarMessage && (
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="absolute mt-18 top-4 right-4 z-30 bg-gray-800 text-white p-2 rounded-full shadow hover:bg-gray-700"
+            title="Open Sidebar"
+          >
+            <PanelRightOpen className="w-4 h-4" />
+          </button>
+        )}
       </div>
+
+      {/* Sidebar */}
+      {isSidebarOpen && sidebarMessage && (
+        <div className="w-1/4 h-full bg-gray-100 text-black p-4 flex flex-col z-30 overflow-y-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Tvara says...</h3>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => handleCopy()}
+                className="text-black hover:text-blue-500"
+                title="Copy"
+              >
+                <Copy className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setIsSidebarOpen(false)}
+                className="text-black hover:text-red-500"
+                title="Close Sidebar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+          <div className="whitespace-pre-wrap text-sm leading-relaxed">
+            <ReactMarkdown
+              components={{
+                a: ({ node, ...props }) => (
+                  <a
+                    {...props}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline hover:text-blue-800 transition"
+                  />
+                ),
+                code: ({ inline, className, children, ...props }) => {
+                  return inline ? (
+                    <code className="bg-gray-200 rounded px-1 py-0.5 font-mono text-sm">
+                      {children}
+                    </code>
+                  ) : (
+                    <pre className="bg-black text-white p-3 rounded-md overflow-x-auto text-sm">
+                      <code className={className} {...props}>
+                        {children}
+                      </code>
+                    </pre>
+                  );
+                },
+                ul: ({ children }) => (
+                  <ul className="list-disc list-inside space-y-1">
+                    {children}
+                  </ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="list-decimal list-inside space-y-1">
+                    {children}
+                  </ol>
+                ),
+                h1: ({ children }) => (
+                  <h1 className="text-xl font-bold mt-4 mb-2">{children}</h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="text-lg font-semibold mt-3 mb-1">
+                    {children}
+                  </h2>
+                ),
+                p: ({ children }) => <p className="mb-2">{children}</p>,
+              }}
+            >
+              {sidebarMessage}
+            </ReactMarkdown>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

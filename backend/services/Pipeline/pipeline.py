@@ -37,8 +37,24 @@ async def speech_ai_pipeline(recognizer, llm_model, tts_engine, websocket, binar
     
     response = ai_response(llm_model, transcription, history_db, agent_id)
 
+    message = response["message"]
+    summary = response["summary"]
+
+    if websocket.client_state.name == "CONNECTED":
+        ai_message = {
+            "type": "ai_response",
+            "message": message,
+            "summary": summary
+        }
+        await websocket.send_text(json.dumps(ai_message))
+
     try:
-        sentences = tts_engine._split_into_sentences(response)
+
+        if not summary:
+            sentences = tts_engine._split_into_sentences(message)
+
+        else:
+            sentences = tts_engine._split_into_sentences(summary)
 
         for i, sentence in enumerate(sentences):            
             chunk_count = 0
